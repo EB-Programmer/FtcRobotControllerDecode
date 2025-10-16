@@ -1,13 +1,5 @@
-.gradle/*
-.idea/*
+*.gradle/*
+*.idea/*
+*/build/*
 local.properties
 *~
-*/build/*
-TeamCode/.gradle/config.properties
-TeamCode/.idea/caches/deviceStreaming.xml
-TeamCode/.idea/gradle.xml
-TeamCode/.idea/migrations.xml
-TeamCode/.idea/misc.xml
-TeamCode/.idea/runConfigurations.xml
-TeamCode/.idea/vcs.xml
-TeamCode/.idea/workspace.xml
