@@ -82,10 +82,10 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
-        leftDriveBack.setDirection(DcMotor.Direction.REVERSE);
-        rightDriveBack.setDirection(DcMotor.Direction.FORWARD);
+        leftDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftDriveBack.setDirection(DcMotor.Direction.FORWARD);
+        rightDriveBack.setDirection(DcMotor.Direction.REVERSE);
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Ready to run");    //
         telemetry.update();
@@ -96,45 +96,50 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
         // Step through each leg of the path, ensuring that the OpMode has not been stopped along the way.
 
         // Step 1:  Drive forward for 3 seconds
-        leftDrive.setPower(FORWARD_SPEED);
-        rightDrive.setPower(FORWARD_SPEED);
-        leftDriveBack.setPower(FORWARD_SPEED);
-        rightDriveBack.setPower(FORWARD_SPEED);
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 3.0)) {
-            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
-            telemetry.update();
-        }
+        Drive(FORWARD_SPEED,2900);
 
         // Step 2:  Spin right for 1.3 seconds
-        leftDrive.setPower(TURN_SPEED);
-        rightDrive.setPower(-TURN_SPEED);
-        leftDriveBack.setPower(TURN_SPEED);
-        rightDriveBack.setPower(-TURN_SPEED);
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 1.3)) {
-            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
-            telemetry.update();
-        }
+        Turn(TURN_SPEED, 400,false);
 
         // Step 3:  Drive Backward for 1 Second
-        leftDrive.setPower(-FORWARD_SPEED);
-        rightDrive.setPower(-FORWARD_SPEED);
-        leftDriveBack.setPower(-FORWARD_SPEED);
-        rightDriveBack.setPower(-FORWARD_SPEED);
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 1.0)) {
-            telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());
-            telemetry.update();
-        }
+
+
+        Drive(FORWARD_SPEED,675);
 
         // Step 4:  Stop
+
+
+    }
+    private void Drive(double speed,long time){
+        leftDrive.setPower(speed);
+        rightDrive.setPower(speed);
+        leftDriveBack.setPower(speed);
+        rightDriveBack.setPower(speed);
+        runtime.reset();
+        sleep(time);
         leftDrive.setPower(0);
         rightDrive.setPower(0);
         leftDriveBack.setPower(0);
         rightDriveBack.setPower(0);
-        telemetry.addData("Path", "Complete");
-        telemetry.update();
-        sleep(1000);
+    }
+
+    private void Turn(double speed,long time,boolean right){
+        if  (right) {
+            leftDrive.setPower(speed);
+            rightDrive.setPower(-speed);
+            leftDriveBack.setPower(speed);
+            rightDriveBack.setPower(-speed);
+        } else {
+            leftDrive.setPower(-speed);
+            rightDrive.setPower(speed);
+            leftDriveBack.setPower(-speed);
+            rightDriveBack.setPower(speed);
+        }
+        runtime.reset();
+        sleep(time);
+        leftDrive.setPower(0);
+        rightDrive.setPower(0);
+        leftDriveBack.setPower(0);
+        rightDriveBack.setPower(0);
     }
 }
