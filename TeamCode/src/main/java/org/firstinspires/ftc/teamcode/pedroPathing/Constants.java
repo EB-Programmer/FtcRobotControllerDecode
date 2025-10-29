@@ -62,10 +62,12 @@ public class Constants {
             .angleUnit(AngleUnit.RADIANS);*/
 
     public static TwoWheelConstants localizerConstants = new TwoWheelConstants()
-            //.forwardEncoder_HardwareMapName("Back_right")
-            //.strafeEncoder_HardwareMapName("Front_left")
-            .forwardEncoder_HardwareMapName("Front_left")
-            .strafeEncoder_HardwareMapName("Back_right")
+            .forwardEncoder_HardwareMapName("Back_right")
+            .strafeEncoder_HardwareMapName("Front_left")
+            .forwardEncoderDirection(Encoder.FORWARD)
+            .strafeEncoderDirection(Encoder.REVERSE)
+            .forwardTicksToInches(0.002955)
+            .strafeTicksToInches(0.002955)
             .strafePodX(0)
             .forwardPodY(-3.25)
             .IMU_HardwareMapName("imu")

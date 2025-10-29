@@ -29,12 +29,11 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 /*
  * This OpMode executes a POV Game style Teleop for a direct drive robot
@@ -45,17 +44,25 @@ import com.qualcomm.robotcore.util.Range;
  * It also opens and closes the claws slowly using the left and right Bumper buttons.
  */
 
-@TeleOp(name="Teleop Simple", group="EB")
+@TeleOp
 public class EBTeleopSimple extends LinearOpMode {
 
-    /* Declare OpMode members. */
-    public DcMotor  leftDrive   = null;
-    public DcMotor  rightDrive  = null;
-    public DcMotor  leftArm     = null;
-    public Servo    leftClaw    = null;
-    public Servo    rightClaw   = null;
-
-    double clawOffset = 0;
+    /* Declare OpMode members.
+    *
+    *    4 Drive Motors
+    *    1 Color Sorter Motor
+    *    1 Shooter Motor
+    *    2 Intake Servos
+    *
+    * */
+    public DcMotor leftFrontDrive   = null;
+    public DcMotor rightFrontDrive = null;
+    public DcMotor leftRearDrive   = null;
+    public DcMotor rightRearDrive = null;
+    private DcMotor sorter = null;
+    private DcMotor shooter = null;
+    private CRServo frontIntake = null;
+    private CRServo backIntake = null;
 
     public static final double MID_SERVO   =  0.5 ;
     public static final double CLAW_SPEED  = 0.02 ;                 // sets rate to move servo
@@ -64,26 +71,32 @@ public class EBTeleopSimple extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        double left;
-        double right;
-        double drive;
-        double turn;
-        double max;
-
         // Define and Initialize Motors
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
-        //leftArm    = hardwareMap.get(DcMotor.class, "left_arm");
+        leftFrontDrive = hardwareMap.get(DcMotor.class, "Front_left");
+        rightFrontDrive = hardwareMap.get(DcMotor.class, "Front_right");
+        leftRearDrive = hardwareMap.get(DcMotor.class, "Back_left");
+        rightRearDrive = hardwareMap.get(DcMotor.class, "Back_right");
+
+        sorter = hardwareMap.get(DcMotor.class, "ColorSorter");
+        shooter = hardwareMap.get(DcMotor.class, "Shooter");
+
+        frontIntake = hardwareMap.get(CRServo.class, "FrontIntake");
+        backIntake = hardwareMap.get(CRServo.class, "BackIntake");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftRearDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightRearDrive.setDirection(DcMotor.Direction.REVERSE);
 
         // If there are encoders connected, switch to RUN_USING_ENCODER mode for greater accuracy
         // leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         // rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        frontIntake.setDirection(DcMotorSimple.Direction.FORWARD);
+        backIntake.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Define and initialize ALL installed servos.
         //leftClaw  = hardwareMap.get(Servo.class, "left_hand");
@@ -104,24 +117,34 @@ public class EBTeleopSimple extends LinearOpMode {
             // Run wheels in POV mode (note: The joystick goes negative when pushed forward, so negate it)
             // In this mode the Left stick moves the robot fwd and back, the Right stick turns left and right.
             // This way it's also easy to just drive straight, or just turn.
-            drive = -gamepad1.left_stick_y;
-            turn  =  gamepad1.right_stick_x;
+            double drive = -gamepad1.left_stick_y;
+            double strafe = gamepad1.left_stick_x;
+            double turn  =  gamepad1.right_stick_x;
 
             // Combine drive and turn for blended motion.
-            left  = drive + turn;
-            right = drive - turn;
+            double frontLeftPower = drive + strafe + turn;
+            double frontRightPower = drive - strafe - turn;
+            double rearLeftPower = drive - strafe + turn;
+            double rearRightPower = drive + strafe - turn;
 
             // Normalize the values so neither exceed +/- 1.0
-            max = Math.max(Math.abs(left), Math.abs(right));
-            if (max > 1.0)
+            double maxPower = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
+            maxPower = Math.max(Math.abs(maxPower), Math.abs(rearLeftPower));
+            maxPower = Math.max(Math.abs(maxPower), Math.abs(rearRightPower));
+
+            if (maxPower > 1.0)
             {
-                left /= max;
-                right /= max;
+                frontLeftPower /= maxPower;
+                frontRightPower /= maxPower;
+                rearLeftPower /= maxPower;
+                rearRightPower /= maxPower;
             }
 
             // Output the safe vales to the motor drives.
-            leftDrive.setPower(left);
-            rightDrive.setPower(right);
+            leftFrontDrive.setPower(frontLeftPower);
+            rightFrontDrive.setPower(frontRightPower);
+            leftRearDrive.setPower(rearLeftPower);
+            rightRearDrive.setPower(rearRightPower);
 
             // Use gamepad left & right Bumpers to open and close the claw
             //if (gamepad1.right_bumper)
@@ -142,14 +165,43 @@ public class EBTeleopSimple extends LinearOpMode {
             //else
             //    leftArm.setPower(0.0);
 
+            shoot();
+            sortColors();
+            intake();
+
             // Send telemetry message to signify robot running;
             //telemetry.addData("claw",  "Offset = %.2f", clawOffset);
             //telemetry.addData("left",  "%.2f", left);
             //telemetry.addData("right", "%.2f", right);
+            telemetry.addData("Front Left Power", frontLeftPower);
+            telemetry.addData("Front Right Power", frontRightPower);
+            telemetry.addData("Rear Left Power", rearLeftPower);
+            telemetry.addData("Rear Right Power", rearRightPower);
             telemetry.update();
 
             // Pace this loop so jaw action is reasonable speed.
             sleep(50);
+        }
+    }
+
+    public void drive() {
+
+    }
+
+    public void shoot() {
+        if(gamepad2.right_bumper){
+            shooter.setPower(.85);
+        }
+    }
+
+    public void sortColors() {
+
+    }
+
+    public void intake() {
+        if(gamepad2.a){
+            frontIntake.setPower(0.5);
+            backIntake.setPower(0.5);
         }
     }
 }
