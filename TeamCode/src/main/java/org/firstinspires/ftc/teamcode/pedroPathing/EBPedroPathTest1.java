@@ -8,8 +8,8 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-@Autonomous(name = "Auto Pedro Pathing Test", group = "EB")
-public class EBPedroPathTest extends OpMode {
+@Autonomous(group="EBDecodeTest")
+public class EBPedroPathTest1 extends OpMode {
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
     private int pathState;

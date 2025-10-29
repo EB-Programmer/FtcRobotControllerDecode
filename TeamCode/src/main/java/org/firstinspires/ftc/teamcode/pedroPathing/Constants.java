@@ -17,12 +17,12 @@ import com.pedropathing.ftc.localization.constants.OTOSConstants;
 import com.pedropathing.ftc.localization.Encoder;
 
 
-
 public class Constants {
+    // TODO: Need to re-measure weight
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(10);
 
-
+    // TODO: Update motor names? Adjust max power?
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(0.5)
             .rightFrontMotorName("Front_right")
@@ -34,9 +34,7 @@ public class Constants {
             .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE);
 
-
-
-
+    // TODO: Use this block if we decide to only use the drive motor encoders
     /*public static DriveEncoderConstants localizerConstants = new DriveEncoderConstants()
             .rightFrontMotorName("Front_right")
             .rightRearMotorName("Back_right")
@@ -49,6 +47,7 @@ public class Constants {
             .robotLength(13.25 )
             .robotWidth(8.5);*/
 
+    // TODO: Use this block if we decide to use the SparkFun OTOS
     /*public static OTOSConstants localizerConstants = new OTOSConstants()
             .hardwareMapName("otos")
             //The y axis is the left/right axis, and the x axis is the forward/backward axis.
@@ -61,13 +60,14 @@ public class Constants {
             .linearUnit(DistanceUnit.INCH)
             .angleUnit(AngleUnit.RADIANS);*/
 
+    // TODO: Use this block if we decide to use two dead wheels + built-in IMU
     public static TwoWheelConstants localizerConstants = new TwoWheelConstants()
             .forwardEncoder_HardwareMapName("Back_right")
             .strafeEncoder_HardwareMapName("Front_left")
             .forwardEncoderDirection(Encoder.FORWARD)
             .strafeEncoderDirection(Encoder.REVERSE)
-            .forwardTicksToInches(0.002955)
-            .strafeTicksToInches(0.002955)
+            .forwardTicksToInches(0.002955)  // measured by forward tuner test
+            .strafeTicksToInches(0.002955)  // measured by lateral tuner test
             .strafePodX(0)
             .forwardPodY(-3.25)
             .IMU_HardwareMapName("imu")
@@ -80,6 +80,7 @@ public class Constants {
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
+    // TODO: Should we try to do localization with two dead wheels + Pinpoint?
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
                 .pathConstraints(pathConstraints)
@@ -88,6 +89,5 @@ public class Constants {
                 //.OTOSLocalizer(localizerConstants)
                 .twoWheelLocalizer(localizerConstants)
                 .build();
-
     }
 }
