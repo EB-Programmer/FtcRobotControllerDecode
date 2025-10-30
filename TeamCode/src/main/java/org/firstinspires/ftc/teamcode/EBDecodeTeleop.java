@@ -33,12 +33,14 @@ public class EBDecodeTeleop extends LinearOpMode {
     private CRServo lowerIntake = null;
     private CRServo upperIntake = null;
 
-    // TODO: Update constants for DECODE use cases: intake/shooter/drive speeds and limits
-    //private static final double MID_SERVO   =  0.5 ;
-    //private static final double CLAW_SPEED  = 0.02 ;   // sets rate to move servo
-    //private static final double ARM_UP_POWER    =  0.45 ;
-    //private static final double ARM_DOWN_POWER  = -0.45 ;
+    private static final double FAST_DRIVE_SPEED_LIMIT = 1.0;
+    private static final double NORMAL_DRIVE_SPEED_LIMIT = 0.5;
+    private static final double SORTER_SORTING_POWER = 0.1;
+    private static final double SORTER_SHOOTING_POWER = -0.1;
+    private static final double SHOOTER_POWER = 0.85;
+    private static final double INTAKE_POWER = 0.2;
 
+    private boolean fastMode = true;
     private double frontLeftPower, frontRightPower, rearLeftPower, rearRightPower;
 
     @Override
@@ -91,6 +93,13 @@ public class EBDecodeTeleop extends LinearOpMode {
     }
 
     public void drive() {
+        // Check if FastMode is being toggled on or off
+        if(gamepad1.a) {
+            fastMode = true;
+        }else if (gamepad1.b){
+            fastMode = false;
+        }
+
         // Run wheels in POV mode
         // The left stick moves the robot fwd/back and strafes left/right
         // The right stick turns the robot counterclockwise and clockwise
@@ -104,16 +113,20 @@ public class EBDecodeTeleop extends LinearOpMode {
         rearLeftPower = drive - strafe + turn;
         rearRightPower = drive + strafe - turn;
 
-        // Normalize the values so neither exceed +/- 1.0
-        // TODO: Should we enforce a maximum speed other than 1.0?
+        // Normalize the values so neither exceed +/- speedLimit
+        double speedLimit = (fastMode ? FAST_DRIVE_SPEED_LIMIT : NORMAL_DRIVE_SPEED_LIMIT);
         double maxPower = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
         maxPower = Math.max(Math.abs(maxPower), Math.abs(rearLeftPower));
         maxPower = Math.max(Math.abs(maxPower), Math.abs(rearRightPower));
-        if (maxPower > 1.0) {
+        if (maxPower > speedLimit) {
             frontLeftPower /= maxPower;
             frontRightPower /= maxPower;
             rearLeftPower /= maxPower;
             rearRightPower /= maxPower;
+            frontLeftPower *= speedLimit;
+            frontRightPower *= speedLimit;
+            rearLeftPower *= speedLimit;
+            rearRightPower *= speedLimit;
         }
 
         // Output the safe vales to the motor drives
@@ -124,44 +137,30 @@ public class EBDecodeTeleop extends LinearOpMode {
     }
 
     public void shoot() {
-        // TODO: If we want to ensure we are not rotating the robot when shooting,
-        //       we may want to use a right thumb button e.g. A or B
-        // TODO: What should we do if the shooting button is not pressed?
-        // TODO: Should we allow simultaneous intake and shooting? Sorting and shooting?
         if(gamepad2.right_bumper){
-            shooter.setPower(0.85);
+            shooter.setPower(SHOOTER_POWER);
+            sorter.setPower(SORTER_SHOOTING_POWER);
+        } else {
+            shooter.setPower(0);
+            sorter.setPower(0);
         }
     }
 
     public void sortColors() {
-        // TODO
-        // Use gamepad left & right Bumpers to open and close the claw
-        //if (gamepad1.right_bumper)
-        //    clawOffset += CLAW_SPEED;
-        //else if (gamepad1.left_bumper)
-        //    clawOffset -= CLAW_SPEED;
-
-        // Move both servos to new position.  Assume servos are mirror image of each other.
-        //clawOffset = Range.clip(clawOffset, -0.5, 0.5);
-        //leftClaw.setPosition(MID_SERVO + clawOffset);
-        //rightClaw.setPosition(MID_SERVO - clawOffset);
-
-        // Use gamepad buttons to move arm up (Y) and down (A)
-        //if (gamepad1.y)
-        //    leftArm.setPower(ARM_UP_POWER);
-        //else if (gamepad1.a)
-        //    leftArm.setPower(ARM_DOWN_POWER);
-        //else
-        //    leftArm.setPower(0.0);
+        if(gamepad2.y){
+            sorter.setPower(SORTER_SORTING_POWER);
+        } else {
+            sorter.setPower(0);
+        }
     }
 
     public void intake() {
-        // TODO: Do we ever need to use right stick (rotate robot) while running intake?
-        //       If so, maybe change intake to use a bumper
-        // TODO: What should we do if the intake button is not pressed?
-        if(gamepad2.a){
-            lowerIntake.setPower(0.5);
-            upperIntake.setPower(0.5);
+        if (gamepad2.a){
+            lowerIntake.setPower(INTAKE_POWER);
+            upperIntake.setPower(INTAKE_POWER);
+        } else{
+            lowerIntake.setPower(0);
+            upperIntake.setPower(0);
         }
     }
 
@@ -174,6 +173,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         telemetry.addData("Front Right Power", frontRightPower);
         telemetry.addData("Rear Left Power", rearLeftPower);
         telemetry.addData("Rear Right Power", rearRightPower);
+        telemetry.addData("Fast Mode", fastMode);
         telemetry.update();
     }
 }
