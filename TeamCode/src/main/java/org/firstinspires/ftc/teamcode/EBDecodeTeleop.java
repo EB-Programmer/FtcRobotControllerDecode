@@ -33,12 +33,12 @@ public class EBDecodeTeleop extends LinearOpMode {
     private CRServo lowerIntake = null;
     private CRServo upperIntake = null;
 
-    private static final double FAST_DRIVE_SPEED_LIMIT = 1.0;
-    private static final double NORMAL_DRIVE_SPEED_LIMIT = 0.5;
-    private static final double SORTER_SORTING_POWER = 0.1;
-    private static final double SORTER_SHOOTING_POWER = -0.1;
-    private static final double SHOOTER_POWER = 0.85;
-    private static final double INTAKE_POWER = 0.2;
+    private static final double FAST_DRIVE_SPEED_LIMIT = 0.4;
+    private static final double NORMAL_DRIVE_SPEED_LIMIT = 0.2;
+    private static final double SORTER_SORTING_POWER = -0.2;
+    private static final double SORTER_SHOOTING_POWER = 0.2;
+    private static final double SHOOTER_POWER = 0.1;
+    private static final double INTAKE_POWER = 0.75;
 
     private boolean fastMode = true;
     private double frontLeftPower, frontRightPower, rearLeftPower, rearRightPower;
@@ -73,10 +73,10 @@ public class EBDecodeTeleop extends LinearOpMode {
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftRearDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightRearDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightRearDrive.setDirection(DcMotor.Direction.FORWARD);
 
         sorter = hardwareMap.get(DcMotor.class, "Sorter");
         shooter = hardwareMap.get(DcMotor.class, "Shooter");
@@ -94,9 +94,9 @@ public class EBDecodeTeleop extends LinearOpMode {
 
     public void drive() {
         // Check if FastMode is being toggled on or off
-        if(gamepad1.a) {
+        if (gamepad1.a) {
             fastMode = true;
-        }else if (gamepad1.b){
+        } else if (gamepad1.b) {
             fastMode = false;
         }
 
@@ -137,19 +137,19 @@ public class EBDecodeTeleop extends LinearOpMode {
     }
 
     public void shoot() {
-        if(gamepad2.right_bumper){
+        if(gamepad2.right_bumper && !gamepad2.y){
             shooter.setPower(SHOOTER_POWER);
             sorter.setPower(SORTER_SHOOTING_POWER);
-        } else {
+        } else if  (gamepad2.y == gamepad2.right_bumper) {
             shooter.setPower(0);
             sorter.setPower(0);
         }
     }
 
     public void sortColors() {
-        if(gamepad2.y){
+        if(gamepad2.y && !gamepad2.right_bumper){
             sorter.setPower(SORTER_SORTING_POWER);
-        } else {
+        } else if (gamepad2.y == gamepad2.right_bumper) {
             sorter.setPower(0);
         }
     }
@@ -169,6 +169,12 @@ public class EBDecodeTeleop extends LinearOpMode {
         //telemetry.addData("claw",  "Offset = %.2f", clawOffset);
         //telemetry.addData("left",  "%.2f", left);
         //telemetry.addData("right", "%.2f", right);
+        telemetry.addData("Gamepad1 A", gamepad1.a);
+        telemetry.addData("Gamepad2 A", gamepad2.a);
+        telemetry.addData("Gamepad2 Y", gamepad2.y);
+        telemetry.addData("Gamepad2 Right Bumper", gamepad2.right_bumper);
+        telemetry.addData("Gamepad1 Left Stick X", gamepad1.left_stick_x);
+        telemetry.addData("Gamepad1 Left Stick Y", gamepad1.left_stick_y);
         telemetry.addData("Front Left Power", frontLeftPower);
         telemetry.addData("Front Right Power", frontRightPower);
         telemetry.addData("Rear Left Power", rearLeftPower);
