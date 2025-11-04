@@ -56,19 +56,22 @@ public class EBDecodeTeleop extends LinearOpMode {
             drive();
             shoot();
             sortColors();
-            intake();
+            intake(); 
             updateTelemetry();
+            OdometryPods.update();
             sleep(50);
         }
     }
 
     public void initHardware() {
+        // TODO:
+            //  Update names on driver hub
+            //  Add odometry offsets
         // Define and Initialize Motors
-        // TODO: Update driver hub configuration to make names consistent with other hardware
-        leftFrontDrive = hardwareMap.get(DcMotor.class, "Front_left");
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "Front_right");
-        leftRearDrive = hardwareMap.get(DcMotor.class, "Back_left");
-        rightRearDrive = hardwareMap.get(DcMotor.class, "Back_right");
+        leftFrontDrive = hardwareMap.get(DcMotor.class, "leftFrontDrive");
+        rightFrontDrive = hardwareMap.get(DcMotor.class, "rightFrontDrive");
+        leftRearDrive = hardwareMap.get(DcMotor.class, "leftRearDrive");
+        rightRearDrive = hardwareMap.get(DcMotor.class, "rightRearDrive");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
@@ -78,11 +81,13 @@ public class EBDecodeTeleop extends LinearOpMode {
         leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
         rightRearDrive.setDirection(DcMotor.Direction.FORWARD);
 
-        sorter = hardwareMap.get(DcMotor.class, "Sorter");
-        shooter = hardwareMap.get(DcMotor.class, "Shooter");
+        OdometryPods.resetPosAndIMU();
 
-        lowerIntake = hardwareMap.get(CRServo.class, "LowerIntake");
-        upperIntake = hardwareMap.get(CRServo.class, "UpperIntake");
+        sorter = hardwareMap.get(DcMotor.class, "sorter");
+        shooter = hardwareMap.get(DcMotor.class, "shooter");
+
+        lowerIntake = hardwareMap.get(CRServo.class, "lowerIntake");
+        upperIntake = hardwareMap.get(CRServo.class, "upperIntake");
 
         lowerIntake.setDirection(DcMotor.Direction.FORWARD);
         upperIntake.setDirection(DcMotor.Direction.REVERSE);
@@ -137,19 +142,21 @@ public class EBDecodeTeleop extends LinearOpMode {
     }
 
     public void shoot() {
-        if(gamepad2.right_bumper && !gamepad2.y){
+        // TODO:
+            //  Figure out why the sorter isn't spinning in the shooting direction
+        if(gamepad2.right_trigger > .25 && !gamepad2.y){
             shooter.setPower(SHOOTER_POWER);
             sorter.setPower(SORTER_SHOOTING_POWER);
-        } else if  (gamepad2.y == gamepad2.right_bumper) {
+        } else if  ((gamepad2.right_trigger <= .25 == !gamepad2.y) || (gamepad2.right_trigger > .25 && gamepad2.y)) {
             shooter.setPower(0);
             sorter.setPower(0);
         }
     }
 
     public void sortColors() {
-        if(gamepad2.y && !gamepad2.right_bumper){
+        if(gamepad2.right_trigger <= .25 && gamepad2.y){
             sorter.setPower(SORTER_SORTING_POWER);
-        } else if (gamepad2.y == gamepad2.right_bumper) {
+        } else if ((gamepad2.right_trigger <= .25 == !gamepad2.y) || (gamepad2.right_trigger > .25 && gamepad2.y)) {
             sorter.setPower(0);
         }
     }
