@@ -4,47 +4,62 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
  * This OpMode executes a POV Game style Teleop for a direct drive robot
  * The code is structured as a LinearOpMode
  *
- * In this mode the left stick moves the robot FWD and back, the Right stick turns left and right.
- * It raises and lowers the arm using the Gamepad Y and A buttons respectively.
- * It also opens and closes the claws slowly using the left and right Bumper buttons.
+ * Controls for Gamepad 1:
+ *   Left Stick:     Move forward & backward, strafe left & right
+ *   Right Stick:    Turn clockwise and counterclockwise
+ *   A:              Fast Drive Mode
+ *   B:              Slow Drive Mode
+ *
+ * Controls for Gamepad 2:
+ *   Left Trigger:   Intake
+ *   Right Trigger:  Shoot
+ *   A:              Long Shot Mode
+ *   B:              Short Shot Mode
+ *   D-Pad Up/Down:  Tune Constants (During pre-competition tuning only)
+ *
  */
 
 @TeleOp(group="EBDecode")
 public class EBDecodeTeleop extends LinearOpMode {
-    /* Declare OpMode members.
-    *
-    *    4 Drive Motors
-    *    1 Color Sorter Motor
-    *    1 Shooter Motor
-    *    2 Intake Servos
-    *
-    * */
+    /* Declare OpMode members:
+     *   4 Drive Motors
+     *   1 Color Sorter Motor
+     *   1 Shooter Motor
+     *   2 Intake Servos
+     */
     private DcMotor leftFrontDrive   = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor leftRearDrive   = null;
     private DcMotor rightRearDrive = null;
     private DcMotor sorter = null;
-    private DcMotor shooter = null;
+    private DcMotor shooter = null;  // TODO: Try DcMotorEx for shooter to get setVelocity method
     private CRServo lowerIntake = null;
     private CRServo upperIntake = null;
 
-    private static final double FAST_DRIVE_SPEED_LIMIT = 0.4;
-    private static final double NORMAL_DRIVE_SPEED_LIMIT = 0.2;
-    private static final double SORTER_SORTING_POWER = -0.2;
-    private static final double SORTER_SHOOTING_POWER = 0.2;
-    private static final double SHOOTER_POWER = 0.1;
+    // TODO: Make constants "final" after tuning
+    private static double DRIVE_HIGH_POWER = 0.4;
+    private static double DRIVE_LOW_POWER = 0.2;
+    private static double SORTER_SORTING_POWER = -0.2;
+    private static double SORTER_SHOOTING_POWER = 0.2;
+    private static double SHOOTER_HIGH_POWER = 0.3;
+    private static double SHOOTER_LOW_POWER = 0.2;
     private static double INTAKE_POWER = 0.75;
+    private static final int STUTTER_PERIOD = 500;  // milliseconds
+    private static final int STUTTER_PAUSE_DURATION = 250;  // milliseconds
+    private static final int LOOP_PERIOD = 50; // milliseconds
 
-    private boolean fastMode = true;
+    private boolean fastDriveMode = true;
+    private boolean longShotMode = true;
     private double frontLeftPower, frontRightPower, rearLeftPower, rearRightPower;
-    private boolean sorterIsTicking, sorterIsWaiting;
-    private static ElapsedTime sorterTickTimer = new ElapsedTime();
+    //private boolean sorterIsTicking, sorterIsWaiting;
+    //private static ElapsedTime sorterTickTimer = new ElapsedTime();
 
     @Override
     public void runOpMode() {
@@ -56,33 +71,37 @@ public class EBDecodeTeleop extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            // TODO: Remove tuneConstant() after tuning is complete
             INTAKE_POWER = tuneConstant("Intake Power", INTAKE_POWER);
+
             drive();
             //shoot();
             //sortColors();
             shootWithStutter();
             intake(); 
             updateTelemetry();
-            OdometryPods.update();
-            sleep(50);
+            //OdometryPods.update();
+            sleep(LOOP_PERIOD);
         }
     }
 
 
     public double tuneConstant(String name, double value) {
-        if (gamepad1.dpad_up) {
+        if (gamepad2.dpad_up) {
             value = value + 0.01;
-        }
-        if (gamepad1.dpad_down) {
+        } else if (gamepad2.dpad_down) {
             value = value - 0.01;
         }
-        if (value>1) {
+
+        if (value > 1) {
             value = 1;
         }
-        if (value<0) {
+        if (value < 0) {
             value = 0;
         }
-        telemetry.addData( name, value);
+
+        telemetry.addData(name, value);
+        return value;
     }
 
     public void initHardware() {
@@ -95,15 +114,17 @@ public class EBDecodeTeleop extends LinearOpMode {
         leftRearDrive = hardwareMap.get(DcMotor.class, "leftRearDrive");
         rightRearDrive = hardwareMap.get(DcMotor.class, "rightRearDrive");
 
-        // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
-        // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
-        // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
+        // To drive forward, most robots need the motor on one side to be reversed, because the
+        // axles point in opposite directions. Pushing the left stick forward MUST make robot go
+        // forward. So adjust these two lines based on your first test drive.
+        // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction
+        // or 90 Deg drives may require direction flips
         leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
         rightRearDrive.setDirection(DcMotor.Direction.FORWARD);
 
-        OdometryPods.resetPosAndIMU();
+        //OdometryPods.resetPosAndIMU();
 
         sorter = hardwareMap.get(DcMotor.class, "sorter");
         shooter = hardwareMap.get(DcMotor.class, "shooter");
@@ -115,16 +136,16 @@ public class EBDecodeTeleop extends LinearOpMode {
         upperIntake.setDirection(DcMotor.Direction.REVERSE);
 
         // Send telemetry message to signify robot waiting;
-        telemetry.addData(">", "Robot Ready.  Press START.");    //
+        telemetry.addData(">", "Robot Ready.  Press START.");
         telemetry.update();
     }
 
     public void drive() {
         // Check if FastMode is being toggled on or off
         if (gamepad1.a) {
-            fastMode = true;
+            fastDriveMode = true;
         } else if (gamepad1.b) {
-            fastMode = false;
+            fastDriveMode = false;
         }
 
         // Run wheels in POV mode
@@ -141,19 +162,19 @@ public class EBDecodeTeleop extends LinearOpMode {
         rearRightPower = drive + strafe - turn;
 
         // Normalize the values so neither exceed +/- speedLimit
-        double speedLimit = (fastMode ? FAST_DRIVE_SPEED_LIMIT : NORMAL_DRIVE_SPEED_LIMIT);
+        double powerLimit = (fastDriveMode ? DRIVE_HIGH_POWER : DRIVE_LOW_POWER);
         double maxPower = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
         maxPower = Math.max(Math.abs(maxPower), Math.abs(rearLeftPower));
         maxPower = Math.max(Math.abs(maxPower), Math.abs(rearRightPower));
-        if (maxPower > speedLimit) {
+        if (maxPower > powerLimit) {
             frontLeftPower /= maxPower;
             frontRightPower /= maxPower;
             rearLeftPower /= maxPower;
             rearRightPower /= maxPower;
-            frontLeftPower *= speedLimit;
-            frontRightPower *= speedLimit;
-            rearLeftPower *= speedLimit;
-            rearRightPower *= speedLimit;
+            frontLeftPower *= powerLimit;
+            frontRightPower *= powerLimit;
+            rearLeftPower *= powerLimit;
+            rearRightPower *= powerLimit;
         }
 
         // Output the safe vales to the motor drives
@@ -185,7 +206,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         }
     }*/
 
-    public void shootWithStutter() {
+    /*public void shootWithStutter() {
         boolean isShooting = (gamepad2.right_trigger > 0.25);
         if (gamepad2.b){
             //TODO 2 states for moving and not moving
@@ -205,11 +226,36 @@ public class EBDecodeTeleop extends LinearOpMode {
         } else {
             // TODO
         }
+    }*/
+
+    public void shootWithStutter() {
+        // Check if LongShotMode is being toggled on or off
+        if (gamepad2.a) {
+            longShotMode = true;
+        } else if (gamepad2.b) {
+            longShotMode = false;
+        }
+
+        boolean isShooting = (gamepad2.right_trigger > 0.25);
+        if (isShooting) {
+            int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
+            if (time < STUTTER_PAUSE_DURATION) {
+                sorter.setPower(0);
+            } else {
+                sorter.setPower(SORTER_SHOOTING_POWER);
+            }
+            double shooterPower = (longShotMode ? SHOOTER_HIGH_POWER : SHOOTER_LOW_POWER);
+            shooter.setPower(shooterPower);
+        } else {
+            sorter.setPower(0);
+            shooter.setPower(0);
+        }
+
     }
 
     public void intake() {
         boolean isShooting = (gamepad2.right_trigger > 0.25);
-        boolean isIntaking = gamepad2.a;
+        boolean isIntaking = (gamepad2.left_trigger > 0.25);
         if (isIntaking || isShooting) {
             lowerIntake.setPower(INTAKE_POWER);
             upperIntake.setPower(INTAKE_POWER);
@@ -220,21 +266,22 @@ public class EBDecodeTeleop extends LinearOpMode {
     }
 
     public void updateTelemetry() {
-        // Send telemetry message to signify robot running;
-        //telemetry.addData("claw",  "Offset = %.2f", clawOffset);
-        //telemetry.addData("left",  "%.2f", left);
-        //telemetry.addData("right", "%.2f", right);
-        telemetry.addData("Gamepad1 A", gamepad1.a);
-        telemetry.addData("Gamepad2 A", gamepad2.a);
-        telemetry.addData("Gamepad2 Y", gamepad2.y);
-        telemetry.addData("Gamepad2 Right Bumper", gamepad2.right_bumper);
+        // Send telemetry message with current state
         telemetry.addData("Gamepad1 Left Stick X", gamepad1.left_stick_x);
         telemetry.addData("Gamepad1 Left Stick Y", gamepad1.left_stick_y);
+        telemetry.addData("Gamepad1 Right Stick X", gamepad1.right_stick_x);
+
+        telemetry.addData("Gamepad2 Left Trigger", gamepad2.left_trigger);
+        telemetry.addData("Gamepad2 Right Trigger", gamepad2.right_trigger);
+
         telemetry.addData("Front Left Power", frontLeftPower);
         telemetry.addData("Front Right Power", frontRightPower);
         telemetry.addData("Rear Left Power", rearLeftPower);
         telemetry.addData("Rear Right Power", rearRightPower);
-        telemetry.addData("Fast Mode", fastMode);
+
+        telemetry.addData("Fast Drive Mode", fastDriveMode);
+        telemetry.addData("Long Shot Mode", longShotMode);
+
         telemetry.update();
     }
 }
