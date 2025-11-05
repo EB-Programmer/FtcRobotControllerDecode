@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
  * This OpMode executes a POV Game style Teleop for a direct drive robot
@@ -38,10 +39,12 @@ public class EBDecodeTeleop extends LinearOpMode {
     private static final double SORTER_SORTING_POWER = -0.2;
     private static final double SORTER_SHOOTING_POWER = 0.2;
     private static final double SHOOTER_POWER = 0.1;
-    private static final double INTAKE_POWER = 0.75;
+    private static double INTAKE_POWER = 0.75;
 
     private boolean fastMode = true;
     private double frontLeftPower, frontRightPower, rearLeftPower, rearRightPower;
+    private boolean sorterIsTicking, sorterIsWaiting;
+    private static ElapsedTime sorterTickTimer = new ElapsedTime();
 
     @Override
     public void runOpMode() {
@@ -53,14 +56,33 @@ public class EBDecodeTeleop extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            INTAKE_POWER = tuneConstant("Intake Power", INTAKE_POWER);
             drive();
-            shoot();
-            sortColors();
+            //shoot();
+            //sortColors();
+            shootWithStutter();
             intake(); 
             updateTelemetry();
             OdometryPods.update();
             sleep(50);
         }
+    }
+
+
+    public double tuneConstant(String name, double value) {
+        if (gamepad1.dpad_up) {
+            value = value + 0.01;
+        }
+        if (gamepad1.dpad_down) {
+            value = value - 0.01;
+        }
+        if (value>1) {
+            value = 1;
+        }
+        if (value<0) {
+            value = 0;
+        }
+        telemetry.addData( name, value);
     }
 
     public void initHardware() {
@@ -141,31 +163,57 @@ public class EBDecodeTeleop extends LinearOpMode {
         rightRearDrive.setPower(rearRightPower);
     }
 
-    public void shoot() {
-        // TODO:
-            //  Figure out why the sorter isn't spinning in the shooting direction
-        if(gamepad2.right_trigger > .25 && !gamepad2.y){
+    /*public void shoot() {
+        boolean isShooting = (gamepad2.right_trigger > 0.25);
+        boolean isSorting = gamepad2.y;
+        if(isShooting && !isSorting){
             shooter.setPower(SHOOTER_POWER);
             sorter.setPower(SORTER_SHOOTING_POWER);
-        } else if  ((gamepad2.right_trigger <= .25 == !gamepad2.y) || (gamepad2.right_trigger > .25 && gamepad2.y)) {
+        } else if (isShooting == isSorting) {
             shooter.setPower(0);
             sorter.setPower(0);
         }
-    }
+    }*/
 
-    public void sortColors() {
-        if(gamepad2.right_trigger <= .25 && gamepad2.y){
+    /*public void sortColors() {
+        boolean isShooting = (gamepad2.right_trigger > 0.25);
+        boolean isSorting = gamepad2.y;
+        if (isSorting && !isShooting) {
             sorter.setPower(SORTER_SORTING_POWER);
-        } else if ((gamepad2.right_trigger <= .25 == !gamepad2.y) || (gamepad2.right_trigger > .25 && gamepad2.y)) {
+        } else if (isShooting == isSorting) {
             sorter.setPower(0);
+        }
+    }*/
+
+    public void shootWithStutter() {
+        boolean isShooting = (gamepad2.right_trigger > 0.25);
+        if (gamepad2.b){
+            //TODO 2 states for moving and not moving
+            if (!sorterIsTicking) {
+                sorterIsTicking = true;
+                sorterIsWaiting = false;
+            }
+            if (sorterTickTimer.time() > 0.2) {
+                // Move!
+                sorterTickTimer.reset();
+                int position = sorter.getCurrentPosition();
+                sorter.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                sorter.setTargetPosition((int) (position+384.5/30) % 384);
+                sorter.setPower(0.5); // TODO: faster
+            }
+
+        } else {
+            // TODO
         }
     }
 
     public void intake() {
-        if (gamepad2.a){
+        boolean isShooting = (gamepad2.right_trigger > 0.25);
+        boolean isIntaking = gamepad2.a;
+        if (isIntaking || isShooting) {
             lowerIntake.setPower(INTAKE_POWER);
             upperIntake.setPower(INTAKE_POWER);
-        } else{
+        } else {
             lowerIntake.setPower(0);
             upperIntake.setPower(0);
         }

@@ -46,6 +46,8 @@ public class EBDecodeAuton extends LinearOpMode {
         rightDrive = hardwareMap.get(DcMotor.class, "Front_right");
         leftDriveBack = hardwareMap.get(DcMotor.class, "Back_left");
         rightDriveBack = hardwareMap.get(DcMotor.class, "Back_right");
+        //sorter = hardwareMap.get(DcMotor.class, "sorter");
+        //shooter = hardwareMap.get(DcMotor.class, "shooter");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
