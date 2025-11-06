@@ -26,7 +26,8 @@ public class EBDecodeAuton extends LinearOpMode {
 
     public static double SORTER_SORTING_POWER = -0.2;
     public static double SORTER_SHOOTING_POWER = 0.2;
-    public static double SHOOTER_POWER = 0.3;
+    public static double SHOOTER_HIGH_POWER = 0.4;
+    public static double SHOOTER_LOW_POWER = 0.3;
     public static double INTAKE_POWER = 0.75;
     public static final int STUTTER_PERIOD = 500;  // milliseconds
     public static final int STUTTER_PAUSE_DURATION = 250;  // milliseconds
@@ -114,17 +115,16 @@ public class EBDecodeAuton extends LinearOpMode {
     }
 
     public void strafe(double speed, long time, boolean right) {
-        // TODO: fix directions
         if (right) {
             leftDrive.setPower(speed);
             rightDrive.setPower(-speed);
-            leftDriveBack.setPower(speed);
-            rightDriveBack.setPower(-speed);
+            leftDriveBack.setPower(-speed);
+            rightDriveBack.setPower(speed);
         } else {
             leftDrive.setPower(-speed);
             rightDrive.setPower(speed);
-            leftDriveBack.setPower(-speed);
-            rightDriveBack.setPower(speed);
+            leftDriveBack.setPower(speed);
+            rightDriveBack.setPower(-speed);
         }
         sleep(time);
         leftDrive.setPower(0);
@@ -133,10 +133,10 @@ public class EBDecodeAuton extends LinearOpMode {
         rightDriveBack.setPower(0);
     }
 
-    public void shoot() {
+    public void shoot(double shooterPower) {
         runtime.reset();
         while (runtime.milliseconds() < SHOOTER_DURATION) {
-            shooter.setPower(SHOOTER_POWER);
+            shooter.setPower(shooterPower);
             lowerIntake.setPower(INTAKE_POWER);
             upperIntake.setPower(INTAKE_POWER);
             int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
