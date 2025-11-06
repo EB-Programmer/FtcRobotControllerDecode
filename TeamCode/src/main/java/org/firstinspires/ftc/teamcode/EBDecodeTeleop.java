@@ -4,8 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
  * This OpMode executes a POV Game style Teleop for a direct drive robot
@@ -47,19 +45,18 @@ public class EBDecodeTeleop extends LinearOpMode {
     private static double DRIVE_HIGH_POWER = 0.4;
     private static double DRIVE_LOW_POWER = 0.2;
     private static double SORTER_SORTING_POWER = -0.2;
-    private static double SORTER_SHOOTING_POWER = 0.2;
+    private static double SORTER_SHOOTING_POWER = 0.4;
     private static double SHOOTER_HIGH_POWER = 0.3;
     private static double SHOOTER_LOW_POWER = 0.2;
     private static double INTAKE_POWER = 0.75;
-    private static final int STUTTER_PERIOD = 500;  // milliseconds
-    private static final int STUTTER_PAUSE_DURATION = 250;  // milliseconds
-    private static final int LOOP_PERIOD = 50; // milliseconds
+    private static final int STUTTER_PERIOD = 160;  // milliseconds
+    private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
+    private static final int LOOP_PERIOD = 20;  // milliseconds
 
     private boolean fastDriveMode = true;
     private boolean longShotMode = true;
     private double frontLeftPower, frontRightPower, rearLeftPower, rearRightPower;
-    //private boolean sorterIsTicking, sorterIsWaiting;
-    //private static ElapsedTime sorterTickTimer = new ElapsedTime();
+    private double shooterPower;
 
     @Override
     public void runOpMode() {
@@ -72,7 +69,17 @@ public class EBDecodeTeleop extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             // TODO: Remove tuneConstant() after tuning is complete
-            INTAKE_POWER = tuneConstant("Intake Power", INTAKE_POWER);
+            SHOOTER_HIGH_POWER = tuneConstant(
+                    "Tuning - Shooter Power", SHOOTER_HIGH_POWER,
+                    gamepad2.dpad_up, gamepad2.dpad_down);
+
+            INTAKE_POWER = tuneConstant(
+                    "Tuning - Intake Power", INTAKE_POWER,
+                    gamepad2.dpad_right, gamepad2.dpad_left);
+
+            DRIVE_HIGH_POWER = tuneConstant(
+                    "Tuning - Drive Power", DRIVE_HIGH_POWER,
+                    gamepad1.dpad_up, gamepad1.dpad_down);
 
             drive();
             //shoot();
@@ -85,18 +92,19 @@ public class EBDecodeTeleop extends LinearOpMode {
         }
     }
 
-    public double tuneConstant(String name, double value) {
-        if (gamepad2.dpad_up) {
+    public double tuneConstant(String name, double value, boolean button_up, boolean button_down) {
+        if (button_up) {
             value = value + 0.01;
-        } else if (gamepad2.dpad_down) {
+        } else if (button_down) {
             value = value - 0.01;
         }
 
         if (value > 1) {
             value = 1;
-        }
-        if (value < 0) {
+        } else if (value < 0) {
             value = 0;
+        } else if (button_up || button_down) {
+            sleep(50);
         }
 
         telemetry.addData(name, value);
@@ -104,35 +112,27 @@ public class EBDecodeTeleop extends LinearOpMode {
     }
 
     public void initHardware() {
-        // TODO:
-            //  Update names on driver hub
-            //  Add odometry offsets
         // Define and Initialize Motors
         leftFrontDrive = hardwareMap.get(DcMotor.class, "leftFrontDrive");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "rightFrontDrive");
         leftRearDrive = hardwareMap.get(DcMotor.class, "leftRearDrive");
         rightRearDrive = hardwareMap.get(DcMotor.class, "rightRearDrive");
-
-        // To drive forward, most robots need the motor on one side to be reversed, because the
-        // axles point in opposite directions. Pushing the left stick forward MUST make robot go
-        // forward. So adjust these two lines based on your first test drive.
-        // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction
-        // or 90 Deg drives may require direction flips
         leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
         rightRearDrive.setDirection(DcMotor.Direction.FORWARD);
 
-        //OdometryPods.resetPosAndIMU();
-
         sorter = hardwareMap.get(DcMotor.class, "sorter");
         shooter = hardwareMap.get(DcMotor.class, "shooter");
+        sorter.setDirection(DcMotor.Direction.FORWARD);
+        shooter.setDirection(DcMotor.Direction.REVERSE);
 
         lowerIntake = hardwareMap.get(CRServo.class, "lowerIntake");
         upperIntake = hardwareMap.get(CRServo.class, "upperIntake");
-
         lowerIntake.setDirection(DcMotor.Direction.FORWARD);
         upperIntake.setDirection(DcMotor.Direction.REVERSE);
+
+        //OdometryPods.resetPosAndIMU();  // TODO: Add odometry offsets
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData(">", "Robot Ready.  Press START.");
@@ -243,19 +243,20 @@ public class EBDecodeTeleop extends LinearOpMode {
             } else {
                 sorter.setPower(SORTER_SHOOTING_POWER);
             }
-            double shooterPower = (longShotMode ? SHOOTER_HIGH_POWER : SHOOTER_LOW_POWER);
+            shooterPower = (longShotMode ? SHOOTER_HIGH_POWER : SHOOTER_LOW_POWER);
             shooter.setPower(shooterPower);
         } else {
+            shooterPower = 0;
             sorter.setPower(0);
-            shooter.setPower(0);
+            shooter.setPower(shooterPower);
         }
 
     }
 
     public void intake() {
-        boolean isShooting = (gamepad2.right_trigger > 0.25);
+        //boolean isShooting = (gamepad2.right_trigger > 0.25);
         boolean isIntaking = (gamepad2.left_trigger > 0.25);
-        if (isIntaking || isShooting) {
+        if (isIntaking) {
             lowerIntake.setPower(INTAKE_POWER);
             upperIntake.setPower(INTAKE_POWER);
         } else {
@@ -280,6 +281,7 @@ public class EBDecodeTeleop extends LinearOpMode {
 
         telemetry.addData("Fast Drive Mode", fastDriveMode);
         telemetry.addData("Long Shot Mode", longShotMode);
+        telemetry.addData("Shooter Power", shooterPower);
 
         telemetry.update();
     }
