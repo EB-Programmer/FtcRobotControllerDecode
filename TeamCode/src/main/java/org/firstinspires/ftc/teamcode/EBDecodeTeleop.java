@@ -78,13 +78,12 @@ public class EBDecodeTeleop extends LinearOpMode {
             //shoot();
             //sortColors();
             shootWithStutter();
-            intake(); 
+            intake();
             updateTelemetry();
             //OdometryPods.update();
             sleep(LOOP_PERIOD);
         }
     }
-
 
     public double tuneConstant(String name, double value) {
         if (gamepad2.dpad_up) {

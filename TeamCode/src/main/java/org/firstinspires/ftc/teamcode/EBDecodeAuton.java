@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -29,25 +30,39 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class EBDecodeAuton extends LinearOpMode {
 
     /* Declare OpMode members. */
-    private DcMotor         leftDrive   = null;
-    private DcMotor         rightDrive  = null;
-    private DcMotor         leftDriveBack  = null;
-    private DcMotor         rightDriveBack  = null;
-
-    private ElapsedTime     runtime = new ElapsedTime();
-
-    static final double     FORWARD_SPEED = 0.5;
-    static final double     TURN_SPEED    = 0.4;
+    private DcMotor leftDrive = null;
+    private DcMotor rightDrive = null;
+    private DcMotor leftDriveBack = null;
+    private DcMotor rightDriveBack = null;
+    private DcMotor sorter = null;
+    private DcMotor shooter = null;
+    private CRServo lowerIntake = null;
+    private CRServo upperIntake = null;
+    private ElapsedTime runtime = new ElapsedTime();
+    private static double SORTER_SORTING_POWER = -0.2;
+    private static double SORTER_SHOOTING_POWER = 0.2;
+    private static double SHOOTER_POWER = 0.3;
+    private static double INTAKE_POWER = 0.75;
+    private static final int STUTTER_PERIOD = 500;  // milliseconds
+    private static final int STUTTER_PAUSE_DURATION = 250;  // milliseconds
+    private static final int LOOP_PERIOD = 50; // milliseconds
+    static final double FORWARD_SPEED = 0.5;
+    static final double TURN_SPEED = 0.4;
+    private int SHOOTER_DURATION = 5000;
 
     @Override
     public void runOpMode() {
         // Initialize the drive system variables.
-        leftDrive = hardwareMap.get(DcMotor.class, "Front_left");
-        rightDrive = hardwareMap.get(DcMotor.class, "Front_right");
-        leftDriveBack = hardwareMap.get(DcMotor.class, "Back_left");
-        rightDriveBack = hardwareMap.get(DcMotor.class, "Back_right");
-        //sorter = hardwareMap.get(DcMotor.class, "sorter");
-        //shooter = hardwareMap.get(DcMotor.class, "shooter");
+        leftDrive = hardwareMap.get(DcMotor.class, "leftFrontDrive");
+        rightDrive = hardwareMap.get(DcMotor.class, "rightFrontDrive");
+        leftDriveBack = hardwareMap.get(DcMotor.class, "leftRearDrive");
+        rightDriveBack = hardwareMap.get(DcMotor.class, "rightRearDrive");
+
+        sorter = hardwareMap.get(DcMotor.class, "sorter");
+        shooter = hardwareMap.get(DcMotor.class, "shooter");
+
+        lowerIntake = hardwareMap.get(CRServo.class, "lowerIntake");
+        upperIntake = hardwareMap.get(CRServo.class, "upperIntake");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
@@ -56,6 +71,9 @@ public class EBDecodeAuton extends LinearOpMode {
         rightDrive.setDirection(DcMotor.Direction.FORWARD);
         leftDriveBack.setDirection(DcMotor.Direction.REVERSE);
         rightDriveBack.setDirection(DcMotor.Direction.FORWARD);
+
+        lowerIntake.setDirection(DcMotor.Direction.FORWARD);
+        upperIntake.setDirection(DcMotor.Direction.REVERSE);
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Ready to run");
@@ -72,7 +90,7 @@ public class EBDecodeAuton extends LinearOpMode {
         }
     }
 
-    private void Drive(double speed, long time){
+    private void Drive(double speed, long time) {
         leftDrive.setPower(speed);
         rightDrive.setPower(speed);
         leftDriveBack.setPower(speed);
@@ -85,7 +103,7 @@ public class EBDecodeAuton extends LinearOpMode {
         rightDriveBack.setPower(0);
     }
 
-    private void Turn(double speed, long time, boolean right){
+    private void Turn(double speed, long time, boolean right) {
         if (right) {
             leftDrive.setPower(speed);
             rightDrive.setPower(-speed);
@@ -103,5 +121,26 @@ public class EBDecodeAuton extends LinearOpMode {
         rightDrive.setPower(0);
         leftDriveBack.setPower(0);
         rightDriveBack.setPower(0);
+    }
+
+    private void Shoot() {
+        runtime.reset();
+        while (runtime.milliseconds() < SHOOTER_DURATION) {
+            shooter.setPower(SHOOTER_POWER);
+            lowerIntake.setPower(INTAKE_POWER);
+            upperIntake.setPower(INTAKE_POWER);
+            int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
+            if (time < STUTTER_PAUSE_DURATION) {
+                sorter.setPower(0);
+            } else {
+                sorter.setPower(SORTER_SHOOTING_POWER);
+            }
+            sleep(50);
+        }
+
+        shooter.setPower(0);
+        sorter.setPower(0);
+        lowerIntake.setPower(0);
+        upperIntake.setPower(0);
     }
 }
