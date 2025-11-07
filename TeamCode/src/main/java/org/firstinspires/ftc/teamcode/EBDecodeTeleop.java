@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
  * This OpMode executes a POV Game style Teleop for a direct drive robot
@@ -17,10 +18,11 @@ import com.qualcomm.robotcore.hardware.DcMotor;
  *
  * Controls for Gamepad 2:
  *   Left Trigger:   Intake
+ *   Left Bumper:    Reverse intake
  *   Right Trigger:  Shoot
  *   A:              Long Shot Mode
  *   B:              Short Shot Mode
- *   D-Pad Up/Down:  Tune Constants (During pre-competition tuning only)
+ *   Y:              Sort (Move paddle in reverse direction)
  *
  */
 
@@ -42,17 +44,18 @@ public class EBDecodeTeleop extends LinearOpMode {
     private CRServo upperIntake = null;
 
     // TODO: Make constants "final" after tuning
-    private static double DRIVE_HIGH_POWER = 0.4;
-    private static double DRIVE_LOW_POWER = 0.2;
-    private static double SORTER_SORTING_POWER = -0.2;
+    private static double DRIVE_HIGH_POWER = 0.9;
+    private static double DRIVE_LOW_POWER = 0.4;
+    private static double SORTER_SORTING_POWER = -0.1;
     private static double SORTER_SHOOTING_POWER = 0.4;
-    private static double SHOOTER_HIGH_POWER = 0.3;
-    private static double SHOOTER_LOW_POWER = 0.2;
-    private static double INTAKE_POWER = 0.75;
+    private static double SHOOTER_HIGH_POWER = 0.95;
+    private static double SHOOTER_LOW_POWER = 0.8;
+    private static double INTAKE_POWER = 0.9;
     private static final int STUTTER_PERIOD = 160;  // milliseconds
     private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
     private static final int LOOP_PERIOD = 20;  // milliseconds
 
+    private ElapsedTime shooterWarmupTimer = new ElapsedTime();
     private boolean fastDriveMode = true;
     private boolean longShotMode = true;
     private double frontLeftPower, frontRightPower, rearLeftPower, rearRightPower;
@@ -82,11 +85,11 @@ public class EBDecodeTeleop extends LinearOpMode {
                     gamepad1.dpad_up, gamepad1.dpad_down);
 
             drive();
-            //shoot();
-            //sortColors();
-            shootWithStutter();
             intake();
+            shootWithStutter();
+            sortColors();
             updateTelemetry();
+
             //OdometryPods.update();
             sleep(LOOP_PERIOD);
         }
@@ -183,19 +186,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         rightRearDrive.setPower(rearRightPower);
     }
 
-    /*public void shoot() {
-        boolean isShooting = (gamepad2.right_trigger > 0.25);
-        boolean isSorting = gamepad2.y;
-        if(isShooting && !isSorting){
-            shooter.setPower(SHOOTER_POWER);
-            sorter.setPower(SORTER_SHOOTING_POWER);
-        } else if (isShooting == isSorting) {
-            shooter.setPower(0);
-            sorter.setPower(0);
-        }
-    }*/
-
-    /*public void sortColors() {
+    public void sortColors() {
         boolean isShooting = (gamepad2.right_trigger > 0.25);
         boolean isSorting = gamepad2.y;
         if (isSorting && !isShooting) {
@@ -203,7 +194,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         } else if (isShooting == isSorting) {
             sorter.setPower(0);
         }
-    }*/
+    }
 
     /*public void shootWithStutter() {
         boolean isShooting = (gamepad2.right_trigger > 0.25);
@@ -236,29 +227,43 @@ public class EBDecodeTeleop extends LinearOpMode {
         }
 
         boolean isShooting = (gamepad2.right_trigger > 0.25);
-        if (isShooting) {
-            int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
-            if (time < STUTTER_PAUSE_DURATION) {
-                sorter.setPower(0);
-            } else {
-                sorter.setPower(SORTER_SHOOTING_POWER);
-            }
+        boolean isSorting = gamepad2.y;
+        if (isShooting && !isSorting) {
+            // Always power up the shooter motor if we are holding the shoot button
             shooterPower = (longShotMode ? SHOOTER_HIGH_POWER : SHOOTER_LOW_POWER);
             shooter.setPower(shooterPower);
-        } else {
+
+            // Power up the sorter motor only if the button has been held for 1+ seconds
+            if (shooterWarmupTimer.time() > 1000) {
+                int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
+                if (time < STUTTER_PAUSE_DURATION) {
+                    sorter.setPower(0);
+                } else {
+                    sorter.setPower(SORTER_SHOOTING_POWER);
+                }
+            }
+        } else if (isShooting == isSorting) {
             shooterPower = 0;
             sorter.setPower(0);
             shooter.setPower(shooterPower);
         }
 
+        if (shooterPower == 0) {
+            // Whenever the shooter power is set to 0, we'll need to reset our warmup timer
+            shooterWarmupTimer.reset();
+        }
     }
 
     public void intake() {
         //boolean isShooting = (gamepad2.right_trigger > 0.25);
         boolean isIntaking = (gamepad2.left_trigger > 0.25);
-        if (isIntaking) {
+        boolean isOuttaking = gamepad2.left_bumper;
+        if (isIntaking && !isOuttaking) {
             lowerIntake.setPower(INTAKE_POWER);
             upperIntake.setPower(INTAKE_POWER);
+        } else if (isOuttaking && !isIntaking) {
+            lowerIntake.setPower(-INTAKE_POWER);
+            upperIntake.setPower(-INTAKE_POWER);
         } else {
             lowerIntake.setPower(0);
             upperIntake.setPower(0);
