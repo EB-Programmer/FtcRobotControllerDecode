@@ -19,7 +19,7 @@ public class EBDecodeAuton extends LinearOpMode {
     public CRServo lowerIntake = null;
     public CRServo upperIntake = null;
 
-    public ElapsedTime runtime = new ElapsedTime();
+    public ElapsedTime runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
     public static double SORTER_SORTING_POWER = -0.2;
     public static double SORTER_SHOOTING_POWER = 0.4;

@@ -55,7 +55,7 @@ public class EBDecodeTeleop extends LinearOpMode {
     private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
     private static final int LOOP_PERIOD = 20;  // milliseconds
 
-    private ElapsedTime shooterWarmupTimer = new ElapsedTime();
+    private ElapsedTime shooterWarmupTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     private boolean fastDriveMode = true;
     private boolean longShotMode = true;
     private double frontLeftPower, frontRightPower, rearLeftPower, rearRightPower;
@@ -234,7 +234,7 @@ public class EBDecodeTeleop extends LinearOpMode {
             shooter.setPower(shooterPower);
 
             // Power up the sorter motor only if the button has been held for 1+ seconds
-            if (shooterWarmupTimer.time() > 1000) {
+            if (shooterWarmupTimer.milliseconds() > 1000) {
                 int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
                 if (time < STUTTER_PAUSE_DURATION) {
                     sorter.setPower(0);
