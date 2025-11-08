@@ -44,13 +44,13 @@ public class EBDecodeTeleop extends LinearOpMode {
     private CRServo upperIntake = null;
 
     // TODO: Make constants "final" after tuning
-    private static double DRIVE_HIGH_POWER = 0.9;
-    private static double DRIVE_LOW_POWER = 0.4;
-    private static double SORTER_SORTING_POWER = -0.1;
-    private static double SORTER_SHOOTING_POWER = 0.4;
-    private static double SHOOTER_HIGH_POWER = 0.95;
-    private static double SHOOTER_LOW_POWER = 0.8;
-    private static double INTAKE_POWER = 0.9;
+    private static final double DRIVE_HIGH_POWER = 0.9;
+    private static final double DRIVE_LOW_POWER = 0.6;
+    private static final double SORTER_SORTING_POWER = -0.1;
+    private static final double SORTER_SHOOTING_POWER = 0.4;
+    private static final double SHOOTER_HIGH_POWER = 0.95;
+    private static final double SHOOTER_LOW_POWER = 0.7;
+    private static final double INTAKE_POWER = 0.9;
     private static final int STUTTER_PERIOD = 160;  // milliseconds
     private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
     private static final int LOOP_PERIOD = 20;  // milliseconds
@@ -58,6 +58,8 @@ public class EBDecodeTeleop extends LinearOpMode {
     private ElapsedTime shooterWarmupTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     private boolean fastDriveMode = true;
     private boolean longShotMode = true;
+    private boolean isIntaking = false;
+    private boolean isOuttaking = false;
     private double frontLeftPower, frontRightPower, rearLeftPower, rearRightPower;
     private double shooterPower;
 
@@ -71,19 +73,6 @@ public class EBDecodeTeleop extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            // TODO: Remove tuneConstant() after tuning is complete
-            SHOOTER_HIGH_POWER = tuneConstant(
-                    "Tuning - Shooter Power", SHOOTER_HIGH_POWER,
-                    gamepad2.dpad_up, gamepad2.dpad_down);
-
-            INTAKE_POWER = tuneConstant(
-                    "Tuning - Intake Power", INTAKE_POWER,
-                    gamepad2.dpad_right, gamepad2.dpad_left);
-
-            DRIVE_HIGH_POWER = tuneConstant(
-                    "Tuning - Drive Power", DRIVE_HIGH_POWER,
-                    gamepad1.dpad_up, gamepad1.dpad_down);
-
             drive();
             intake();
             shootWithStutter();
@@ -94,7 +83,7 @@ public class EBDecodeTeleop extends LinearOpMode {
             sleep(LOOP_PERIOD);
         }
     }
-
+/*
     public double tuneConstant(String name, double value, boolean button_up, boolean button_down) {
         if (button_up) {
             value = value + 0.01;
@@ -113,7 +102,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         telemetry.addData(name, value);
         return value;
     }
-
+*/
     public void initHardware() {
         // Define and Initialize Motors
         leftFrontDrive = hardwareMap.get(DcMotor.class, "leftFrontDrive");
@@ -155,7 +144,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         // The right stick turns the robot counterclockwise and clockwise
         double drive = -gamepad1.left_stick_y;
         double strafe = gamepad1.left_stick_x;
-        double turn  =  gamepad1.right_stick_x;
+        double turn  =  gamepad1.right_trigger - gamepad1.left_trigger;
 
         // Combine drive, strafe, and turn for blended motion
         frontLeftPower = drive + strafe + turn;
@@ -229,6 +218,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         boolean isShooting = (gamepad2.right_trigger > 0.25);
         boolean isSorting = gamepad2.y;
         if (isShooting && !isSorting) {
+            isIntaking = false;
             // Always power up the shooter motor if we are holding the shoot button
             shooterPower = (longShotMode ? SHOOTER_HIGH_POWER : SHOOTER_LOW_POWER);
             shooter.setPower(shooterPower);
@@ -256,14 +246,17 @@ public class EBDecodeTeleop extends LinearOpMode {
 
     public void intake() {
         //boolean isShooting = (gamepad2.right_trigger > 0.25);
-        boolean isIntaking = (gamepad2.left_trigger > 0.25);
-        boolean isOuttaking = gamepad2.left_bumper;
-        if (isIntaking && !isOuttaking) {
-            lowerIntake.setPower(INTAKE_POWER);
-            upperIntake.setPower(INTAKE_POWER);
-        } else if (isOuttaking && !isIntaking) {
+
+        if(gamepad2.rightBumperWasPressed()){
+            isIntaking = !isIntaking;
+        }
+
+        if (isOuttaking && !isIntaking) {
             lowerIntake.setPower(-INTAKE_POWER);
             upperIntake.setPower(-INTAKE_POWER);
+        } else if (isIntaking && !isOuttaking) {
+            lowerIntake.setPower(INTAKE_POWER);
+            upperIntake.setPower(INTAKE_POWER);
         } else {
             lowerIntake.setPower(0);
             upperIntake.setPower(0);
