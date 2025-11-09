@@ -49,7 +49,7 @@ public class EBDecodeTeleop extends LinearOpMode {
     private static final double SORTER_SORTING_POWER = -0.1;
     private static final double SORTER_SHOOTING_POWER = 0.4;
     private static final double SHOOTER_HIGH_POWER = 0.95;
-    private static final double SHOOTER_LOW_POWER = 0.7;
+    private static final double SHOOTER_LOW_POWER = 0.8;
     private static final double INTAKE_POWER = 0.9;
     private static final int STUTTER_PERIOD = 160;  // milliseconds
     private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
@@ -218,7 +218,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         boolean isShooting = (gamepad2.right_trigger > 0.25);
         boolean isSorting = gamepad2.y;
         if (isShooting && !isSorting) {
-            isIntaking = false;
+            //isIntaking = false;
             // Always power up the shooter motor if we are holding the shoot button
             shooterPower = (longShotMode ? SHOOTER_HIGH_POWER : SHOOTER_LOW_POWER);
             shooter.setPower(shooterPower);
@@ -247,8 +247,16 @@ public class EBDecodeTeleop extends LinearOpMode {
     public void intake() {
         //boolean isShooting = (gamepad2.right_trigger > 0.25);
 
-        if(gamepad2.rightBumperWasPressed()){
+        if (gamepad2.rightBumperWasPressed()){
             isIntaking = !isIntaking;
+            if (isIntaking) {
+                isOuttaking = false;
+            }
+        } else if (gamepad2.leftBumperWasPressed()){
+            isOuttaking = !isOuttaking;
+            if (isOuttaking) {
+                isIntaking = false;
+            }
         }
 
         if (isOuttaking && !isIntaking) {
