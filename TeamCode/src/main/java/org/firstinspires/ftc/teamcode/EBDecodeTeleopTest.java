@@ -23,7 +23,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  *   Right Trigger:  Shoot
  *   A:              Long Shot Mode
  *   B:              Short Shot Mode
- *   Y:              Sort
+ *   X:              Move Paddle for Shooting (tap)
+ *   Y:              Move Paddle for Sorting (tap)
  *
  */
 
@@ -316,7 +317,7 @@ public class EBDecodeTeleopTest extends LinearOpMode {
 
     public void updateTelemetry() {
         // Send telemetry message with current state
-        telemetry.addData("Gamepad1 Left Stick X", gamepad1.left_stick_x);
+        /*telemetry.addData("Gamepad1 Left Stick X", gamepad1.left_stick_x);
         telemetry.addData("Gamepad1 Left Stick Y", gamepad1.left_stick_y);
         telemetry.addData("Gamepad1 Right Stick X", gamepad1.right_stick_x);
 
@@ -326,11 +327,12 @@ public class EBDecodeTeleopTest extends LinearOpMode {
         telemetry.addData("Front Left Power", frontLeftPower);
         telemetry.addData("Front Right Power", frontRightPower);
         telemetry.addData("Rear Left Power", rearLeftPower);
-        telemetry.addData("Rear Right Power", rearRightPower);
+        telemetry.addData("Rear Right Power", rearRightPower);*/
 
         telemetry.addData("Fast Drive Mode", fastDriveMode);
         telemetry.addData("Long Shot Mode", longShotMode);
         telemetry.addData("Shooter Power", shooterPower);
+        telemetry.addData("Sorter Position", sorter.getCurrentPosition());
 
         telemetry.update();
     }

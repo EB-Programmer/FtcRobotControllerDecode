@@ -23,6 +23,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  *   Right Trigger:  Shoot
  *   A:              Long Shot Mode
  *   B:              Short Shot Mode
+ *   X:              Toggle sorter zero power behavior
  *   Y:              Sort
  *
  */
@@ -176,6 +177,14 @@ public class EBDecodeTeleop extends LinearOpMode {
     }
 
     public void sortColors() {
+        if (gamepad2.xWasPressed()) {
+            if (sorter.getZeroPowerBehavior() == DcMotor.ZeroPowerBehavior.BRAKE) {
+                sorter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            } else {
+                sorter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            }
+        }
+
         boolean isShooting = (gamepad2.right_trigger > 0.25);
         boolean isSorting = gamepad2.y;
         if (isSorting && !isShooting) {
@@ -288,6 +297,8 @@ public class EBDecodeTeleop extends LinearOpMode {
         telemetry.addData("Fast Drive Mode", fastDriveMode);
         telemetry.addData("Long Shot Mode", longShotMode);
         telemetry.addData("Shooter Power", shooterPower);
+        telemetry.addData("Sorter Is Braking",
+                (sorter.getZeroPowerBehavior() == DcMotor.ZeroPowerBehavior.BRAKE));
 
         telemetry.update();
     }
