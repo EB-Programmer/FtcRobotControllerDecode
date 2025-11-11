@@ -12,17 +12,18 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  *
  * Controls for Gamepad 1:
  *   Left Stick:     Move forward & backward, strafe left & right
- *   Right Stick:    Turn clockwise and counterclockwise
+ *   Left Trigger:   Turn counterclockwise
+ *   Right Trigger:  Turn clockwise
  *   A:              Fast Drive Mode
  *   B:              Slow Drive Mode
  *
  * Controls for Gamepad 2:
- *   Left Trigger:   Intake
  *   Left Bumper:    Reverse intake
+ *   Right Bumper:   Intake
  *   Right Trigger:  Shoot
  *   A:              Long Shot Mode
  *   B:              Short Shot Mode
- *   Y:              Sort (Move paddle in reverse direction)
+ *   Y:              Sort
  *
  */
 
@@ -43,7 +44,6 @@ public class EBDecodeTeleop extends LinearOpMode {
     private CRServo lowerIntake = null;
     private CRServo upperIntake = null;
 
-    // TODO: Make constants "final" after tuning
     private static final double DRIVE_HIGH_POWER = 0.9;
     private static final double DRIVE_LOW_POWER = 0.6;
     private static final double SORTER_SORTING_POWER = -0.1;
