@@ -47,8 +47,9 @@ public class EBDecodeTeleopTest extends LinearOpMode {
 
     private static final double DRIVE_HIGH_POWER = 0.9;
     private static final double DRIVE_LOW_POWER = 0.6;
-    private static double SORTER_SORTING_POWER = -0.1;
-    private static final double SORTER_SHOOTING_POWER = 0.4;
+    //private static double SORTER_SORTING_POWER = -0.1;
+    //private static final double SORTER_SHOOTING_POWER = 0.4;
+    private static double SORTER_POWER = 0.5;
     private static final double SHOOTER_HIGH_POWER = 0.95;
     private static final double SHOOTER_LOW_POWER = 0.8;
     private static final double INTAKE_POWER = 0.9;
@@ -74,8 +75,8 @@ public class EBDecodeTeleopTest extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            SORTER_SORTING_POWER = -tuneConstant(
-                    "Tuning - Sorting Power", -SORTER_SORTING_POWER,
+            SORTER_POWER = tuneConstant(
+                    "Tuning - Sorting Power", SORTER_POWER,
                     gamepad2.dpad_up, gamepad2.dpad_down);
 
             drive();
@@ -123,11 +124,14 @@ public class EBDecodeTeleopTest extends LinearOpMode {
 
         sorter = hardwareMap.get(DcMotor.class, "sorter");
         shooter = hardwareMap.get(DcMotor.class, "shooter");
+
         sorter.setDirection(DcMotor.Direction.FORWARD);
         shooter.setDirection(DcMotor.Direction.REVERSE);
         sorter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         sorter.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        sorter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        sorter.setTargetPosition(0);
+        sorter.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        sorter.setPower(SORTER_POWER);
 
         lowerIntake = hardwareMap.get(CRServo.class, "lowerIntake");
         upperIntake = hardwareMap.get(CRServo.class, "upperIntake");
@@ -195,8 +199,11 @@ public class EBDecodeTeleopTest extends LinearOpMode {
         }
     }*/
 
+    // Counterclockwise = shooting = positive direction
+    // X and Y do the same thing
+    // positive direction 1/3 rotation twice, then backward 2/3 rotation
     public void testSorter() {
-        // Tap Y to move sorter paddle 1/3 rotation
+        // Tap Y to move sorter paddle 1/3 rotation clockwise
         // TODO: test various speeds
         // TODO: still need stutter?
         // TODO: works for shooting and sorting?
@@ -206,14 +213,22 @@ public class EBDecodeTeleopTest extends LinearOpMode {
         boolean isSorting = sorter.isBusy();
         boolean sortRequested = gamepad2.yWasPressed();
         if (sortRequested && !isShooting && !isSorting) {
-            // TODO: add or subtract?
-            sorter.setTargetPosition((int) ((sorter.getCurrentPosition() + 384.5/3) % 384));
-            sorter.setPower(SORTER_SORTING_POWER);
+            double currentPosition = sorter.getCurrentPosition();
+            double targetPosition = currentPosition - (384.5 / 3);
+            if (targetPosition < 0) {
+                targetPosition += 384.5;
+            }
+            double targetIndex = Math.round(targetPosition / (384.5 / 3));
+            targetPosition = targetIndex * (384.5 / 3);
+            sorter.setPower(SORTER_POWER / 2);
+            sorter.setTargetPosition((int) Math.round(targetPosition));
+
+            // TODO: If we want to stutter: can use prior timing logic
         }
     }
 
     public void testSorterForShooting() {
-        // Tap Y to move sorter paddle 1/3 rotation
+        // Tap X to move sorter paddle 1/3 rotation counterclockwise
         // TODO: test various speeds
         // TODO: still need stutter?
         // TODO: works for shooting and sorting?
@@ -223,33 +238,17 @@ public class EBDecodeTeleopTest extends LinearOpMode {
         boolean isSorting = sorter.isBusy();
         boolean sortRequested = gamepad2.xWasPressed();
         if (sortRequested && !isShooting && !isSorting) {
-            // TODO: add or subtract?
-            sorter.setTargetPosition((int) ((sorter.getCurrentPosition() + 384.5/3) % 384));
-            sorter.setPower(-SORTER_SORTING_POWER);
+            double currentPosition = sorter.getCurrentPosition();
+            double targetPosition = currentPosition + (384.5 / 3);
+            if (targetPosition < 0) {
+                targetPosition += 384.5;
+            }
+            double targetIndex = Math.round(targetPosition / (384.5 / 3));
+            targetPosition = targetIndex * (384.5 / 3);
+            sorter.setPower(SORTER_POWER / 2);
+            sorter.setTargetPosition((int) Math.round(targetPosition));
         }
     }
-
-    /*public void shootWithStutter() {
-        boolean isShooting = (gamepad2.right_trigger > 0.25);
-        if (gamepad2.b){
-            //TODO 2 states for moving and not moving
-            if (!sorterIsTicking) {
-                sorterIsTicking = true;
-                sorterIsWaiting = false;
-            }
-            if (sorterTickTimer.time() > 0.2) {
-                // Move!
-                sorterTickTimer.reset();
-                int position = sorter.getCurrentPosition();
-                sorter.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                sorter.setTargetPosition((int) (position+384.5/30) % 384);
-                sorter.setPower(0.5); // TODO: faster
-            }
-
-        } else {
-            // TODO
-        }
-    }*/
 
     public void shootWithStutter() {
         // Check if LongShotMode is being toggled on or off
@@ -316,23 +315,13 @@ public class EBDecodeTeleopTest extends LinearOpMode {
     }
 
     public void updateTelemetry() {
-        // Send telemetry message with current state
-        /*telemetry.addData("Gamepad1 Left Stick X", gamepad1.left_stick_x);
-        telemetry.addData("Gamepad1 Left Stick Y", gamepad1.left_stick_y);
-        telemetry.addData("Gamepad1 Right Stick X", gamepad1.right_stick_x);
-
-        telemetry.addData("Gamepad2 Left Trigger", gamepad2.left_trigger);
-        telemetry.addData("Gamepad2 Right Trigger", gamepad2.right_trigger);
-
-        telemetry.addData("Front Left Power", frontLeftPower);
-        telemetry.addData("Front Right Power", frontRightPower);
-        telemetry.addData("Rear Left Power", rearLeftPower);
-        telemetry.addData("Rear Right Power", rearRightPower);*/
-
         telemetry.addData("Fast Drive Mode", fastDriveMode);
         telemetry.addData("Long Shot Mode", longShotMode);
         telemetry.addData("Shooter Power", shooterPower);
-        telemetry.addData("Sorter Position", sorter.getCurrentPosition());
+
+        telemetry.addData("Sorter Current Position", sorter.getCurrentPosition());
+        telemetry.addData("Sorter Target Position", sorter.getTargetPosition());
+        telemetry.addData("Sorter Busy", sorter.isBusy());
 
         telemetry.update();
     }
