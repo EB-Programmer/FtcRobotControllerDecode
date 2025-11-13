@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -45,13 +46,13 @@ public class EBDecodeTeleop extends LinearOpMode {
     private CRServo lowerIntake = null;
     private CRServo upperIntake = null;
 
-    private static final double DRIVE_HIGH_POWER = 0.9;
+    private static final double DRIVE_HIGH_POWER = 1.0;
     private static final double DRIVE_LOW_POWER = 0.6;
     private static final double SORTER_SORTING_POWER = -0.1;
     private static final double SORTER_SHOOTING_POWER = 0.4;
     private static final double SHOOTER_HIGH_POWER = 0.95;
     private static final double SHOOTER_LOW_POWER = 0.8;
-    private static final double INTAKE_POWER = 0.9;
+    private static final double INTAKE_POWER = 1.0;
     private static final int STUTTER_PERIOD = 160;  // milliseconds
     private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
     private static final int LOOP_PERIOD = 20;  // milliseconds
@@ -125,7 +126,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         lowerIntake.setDirection(DcMotor.Direction.FORWARD);
         upperIntake.setDirection(DcMotor.Direction.REVERSE);
 
-        //OdometryPods.resetPosAndIMU();  // TODO: Add odometry offsets
+        OdometryPods.resetPosAndIMU();  // TODO: Add odometry offsets
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData(">", "Robot Ready.  Press START.");
@@ -153,8 +154,14 @@ public class EBDecodeTeleop extends LinearOpMode {
         rearLeftPower = drive - strafe + turn;
         rearRightPower = drive + strafe - turn;
 
-        // Normalize the values so neither exceed +/- speedLimit
         double powerLimit = (fastDriveMode ? DRIVE_HIGH_POWER : DRIVE_LOW_POWER);
+
+        // If turning during Low Power Mode: decrease max speed even more for fine-tune aiming
+        if (!fastDriveMode && drive == 0 && strafe == 0) {
+            powerLimit = powerLimit / 2;
+        }
+
+        // Normalize the values so neither exceed +/- speedLimit
         double maxPower = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
         maxPower = Math.max(Math.abs(maxPower), Math.abs(rearLeftPower));
         maxPower = Math.max(Math.abs(maxPower), Math.abs(rearRightPower));
@@ -297,6 +304,8 @@ public class EBDecodeTeleop extends LinearOpMode {
         telemetry.addData("Fast Drive Mode", fastDriveMode);
         telemetry.addData("Long Shot Mode", longShotMode);
         telemetry.addData("Shooter Power", shooterPower);
+
+        telemetry.addData("Motor Velocity", ((DcMotorEx)shooter).getVelocity());
         telemetry.addData("Sorter Is Braking",
                 (sorter.getZeroPowerBehavior() == DcMotor.ZeroPowerBehavior.BRAKE));
 
