@@ -2,11 +2,15 @@ package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+//import org.firstinspires.ftc.teamcode.GoBildaPinpointDriver;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
+import com.pedropathing.ftc.localization.constants.PinpointConstants;
 import com.pedropathing.ftc.localization.constants.TwoWheelConstants;
 import com.pedropathing.paths.PathConstraints;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -18,21 +22,28 @@ import com.pedropathing.ftc.localization.Encoder;
 
 
 public class Constants {
-    // TODO: Need to re-measure weight
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(10);
+            .mass(12);  // TODO: need to re-measure
 
-    // TODO: Update motor names? Adjust max power?
     public static MecanumConstants driveConstants = new MecanumConstants()
-            .maxPower(0.5)
-            .rightFrontMotorName("Front_right")
-            .rightRearMotorName("Back_right")
-            .leftRearMotorName("Back_left")
-            .leftFrontMotorName("Front_left")
-            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE);
+            .maxPower(0.7)  // TODO probably want to increase
+            .rightFrontMotorName("rightFrontDrive")
+            .rightRearMotorName("rightRearDrive")
+            .leftRearMotorName("leftRearDrive")
+            .leftFrontMotorName("leftFrontDrive")
+            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
+
+    public static PinpointConstants localizerConstants = new PinpointConstants()
+            .forwardPodY(7.5)
+            .strafePodX(-7.0)
+            .distanceUnit(DistanceUnit.INCH)
+            .hardwareMapName("pinpoint")
+            .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD)
+            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
+            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
     // TODO: Use this block if we decide to only use the drive motor encoders
     /*public static DriveEncoderConstants localizerConstants = new DriveEncoderConstants()
@@ -61,7 +72,7 @@ public class Constants {
             .angleUnit(AngleUnit.RADIANS);*/
 
     // TODO: Use this block if we decide to use two dead wheels + built-in IMU
-    public static TwoWheelConstants localizerConstants = new TwoWheelConstants()
+    /*public static TwoWheelConstants localizerConstants = new TwoWheelConstants()
             .forwardEncoder_HardwareMapName("Back_right")
             .strafeEncoder_HardwareMapName("Front_left")
             .forwardEncoderDirection(Encoder.FORWARD)
@@ -76,18 +87,18 @@ public class Constants {
                             RevHubOrientationOnRobot.LogoFacingDirection.UP,
                             RevHubOrientationOnRobot.UsbFacingDirection.LEFT
                     )
-            );
+            );*/
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
-    // TODO: Should we try to do localization with two dead wheels + Pinpoint?
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
                 .pathConstraints(pathConstraints)
                 .mecanumDrivetrain(driveConstants)
+                .pinpointLocalizer(localizerConstants)
                 //.driveEncoderLocalizer(localizerConstants)
                 //.OTOSLocalizer(localizerConstants)
-                .twoWheelLocalizer(localizerConstants)
+                //.twoWheelLocalizer(localizerConstants)
                 .build();
     }
 }
