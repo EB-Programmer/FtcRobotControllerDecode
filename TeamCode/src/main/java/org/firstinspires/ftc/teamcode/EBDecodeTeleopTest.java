@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -45,13 +46,12 @@ public class EBDecodeTeleopTest extends LinearOpMode {
     private CRServo lowerIntake = null;
     private CRServo upperIntake = null;
 
-    private static final double DRIVE_HIGH_POWER = 0.9;
-    private static final double DRIVE_LOW_POWER = 0.6;
-    //private static double SORTER_SORTING_POWER = -0.1;
-    //private static final double SORTER_SHOOTING_POWER = 0.4;
-    private static double SORTER_POWER = 0.5;
+    private static final double DRIVE_HIGH_POWER = 1.0;
+    private static final double DRIVE_LOW_POWER = 0.4;
+    private static double SORTER_POWER = 0.4;
     private static final double SHOOTER_HIGH_POWER = 0.95;
     private static final double SHOOTER_LOW_POWER = 0.8;
+    private static double SHOOTER_VELOCITY = 1000;
     private static final double INTAKE_POWER = 0.9;
     private static final int STUTTER_PERIOD = 160;  // milliseconds
     private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
@@ -76,8 +76,12 @@ public class EBDecodeTeleopTest extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             SORTER_POWER = tuneConstant(
-                    "Tuning - Sorting Power", SORTER_POWER,
-                    gamepad2.dpad_up, gamepad2.dpad_down);
+                    "Tuning - Sorter Power", SORTER_POWER,
+                    gamepad2.dpad_up, gamepad2.dpad_down, 0.01, 1.0);
+
+            SHOOTER_VELOCITY = tuneConstant(
+                    "Tuning - Shooter Velocity", SHOOTER_VELOCITY,
+                    gamepad2.dpad_right, gamepad2.dpad_left, 10, 2000);
 
             drive();
             intake();
@@ -92,15 +96,15 @@ public class EBDecodeTeleopTest extends LinearOpMode {
         }
     }
 
-    public double tuneConstant(String name, double value, boolean button_up, boolean button_down) {
+    public double tuneConstant(String name, double value, boolean button_up, boolean button_down, double increment, double max_val) {
         if (button_up) {
-            value = value + 0.01;
+            value = value + increment;
         } else if (button_down) {
-            value = value - 0.01;
+            value = value - increment;
         }
 
-        if (value > 1) {
-            value = 1;
+        if (value > max_val) {
+            value = max_val;
         } else if (value < 0) {
             value = 0;
         } else if (button_up || button_down) {
@@ -215,15 +219,19 @@ public class EBDecodeTeleopTest extends LinearOpMode {
         if (sortRequested && !isShooting && !isSorting) {
             double currentPosition = sorter.getCurrentPosition();
             double targetPosition = currentPosition - (384.5 / 3);
-            if (targetPosition < 0) {
-                targetPosition += 384.5;
-            }
             double targetIndex = Math.round(targetPosition / (384.5 / 3));
             targetPosition = targetIndex * (384.5 / 3);
             sorter.setPower(SORTER_POWER / 2);
             sorter.setTargetPosition((int) Math.round(targetPosition));
 
-            // TODO: If we want to stutter: can use prior timing logic
+            if (true || shooterWarmupTimer.milliseconds() > 1000) {
+                int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
+                if (time < STUTTER_PAUSE_DURATION) {
+                    sorter.setPower(0);
+                } else {
+                    sorter.setPower(SORTER_POWER / 2);
+                }
+            }
         }
     }
 
@@ -240,13 +248,19 @@ public class EBDecodeTeleopTest extends LinearOpMode {
         if (sortRequested && !isShooting && !isSorting) {
             double currentPosition = sorter.getCurrentPosition();
             double targetPosition = currentPosition + (384.5 / 3);
-            if (targetPosition < 0) {
-                targetPosition += 384.5;
-            }
             double targetIndex = Math.round(targetPosition / (384.5 / 3));
             targetPosition = targetIndex * (384.5 / 3);
-            sorter.setPower(SORTER_POWER / 2);
+            sorter.setPower(SORTER_POWER);
             sorter.setTargetPosition((int) Math.round(targetPosition));
+
+            if (true || shooterWarmupTimer.milliseconds() > 1000) {
+                int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
+                if (time < STUTTER_PAUSE_DURATION) {
+                    sorter.setPower(0);
+                } else {
+                    sorter.setPower(SORTER_POWER);
+                }
+            }
         }
     }
 
@@ -265,6 +279,9 @@ public class EBDecodeTeleopTest extends LinearOpMode {
             // Always power up the shooter motor if we are holding the shoot button
             shooterPower = (longShotMode ? SHOOTER_HIGH_POWER : SHOOTER_LOW_POWER);
             shooter.setPower(shooterPower);
+
+            // TODO
+            //((DcMotorEx)shooter).setVelocity(SHOOTER_VELOCITY);
 
             // Power up the sorter motor only if the button has been held for 1+ seconds
             /*if (shooterWarmupTimer.milliseconds() > 1000) {
@@ -322,6 +339,9 @@ public class EBDecodeTeleopTest extends LinearOpMode {
         telemetry.addData("Sorter Current Position", sorter.getCurrentPosition());
         telemetry.addData("Sorter Target Position", sorter.getTargetPosition());
         telemetry.addData("Sorter Busy", sorter.isBusy());
+        telemetry.addData("Sorter Is Braking",
+                (sorter.getZeroPowerBehavior() == DcMotor.ZeroPowerBehavior.BRAKE));
+        telemetry.addData("Motor Velocity", ((DcMotorEx)shooter).getVelocity());
 
         telemetry.update();
     }
