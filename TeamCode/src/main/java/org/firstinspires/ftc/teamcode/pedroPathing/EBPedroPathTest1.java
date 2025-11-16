@@ -8,6 +8,8 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.OdometryPods;
+
 @Autonomous(group="EBDecodeTest")
 public class EBPedroPathTest1 extends OpMode {
     private Follower follower;
@@ -106,6 +108,7 @@ public class EBPedroPathTest1 extends OpMode {
         opmodeTimer.resetTimer();
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
+        OdometryPods.resetPosAndIMU();
         follower.setStartingPose(startPose);
     }
 

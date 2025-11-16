@@ -21,11 +21,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Controls for Gamepad 2:
  *   Left Bumper:    Reverse intake
  *   Right Bumper:   Intake
- *   Right Trigger:  Shoot
+ *   Right Trigger:  Shoot (hold)
  *   A:              Long Shot Mode
  *   B:              Short Shot Mode
- *   X:              Toggle sorter zero power behavior
- *   Y:              Sort
+ *   Y:              Sort (hold)
  *
  */
 
@@ -42,16 +41,16 @@ public class EBDecodeTeleop extends LinearOpMode {
     private DcMotor leftRearDrive   = null;
     private DcMotor rightRearDrive = null;
     private DcMotor sorter = null;
-    private DcMotor shooter = null;  // TODO: Try DcMotorEx for shooter to get setVelocity method
+    private DcMotor shooter = null;
     private CRServo lowerIntake = null;
     private CRServo upperIntake = null;
 
     private static final double DRIVE_HIGH_POWER = 1.0;
-    private static final double DRIVE_LOW_POWER = 0.6;
+    private static final double DRIVE_LOW_POWER = 0.4;
     private static final double SORTER_SORTING_POWER = -0.1;
     private static final double SORTER_SHOOTING_POWER = 0.4;
-    private static final double SHOOTER_HIGH_POWER = 0.95;
-    private static final double SHOOTER_LOW_POWER = 0.8;
+    private static double SHOOTER_HIGH_VELOCITY = 1000;
+    private static double SHOOTER_LOW_VELOCITY = 800;
     private static final double INTAKE_POWER = 1.0;
     private static final int STUTTER_PERIOD = 160;  // milliseconds
     private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
@@ -63,7 +62,9 @@ public class EBDecodeTeleop extends LinearOpMode {
     private boolean isIntaking = false;
     private boolean isOuttaking = false;
     private double frontLeftPower, frontRightPower, rearLeftPower, rearRightPower;
-    private double shooterPower;
+    private double targetShooterVelocity = 0;
+    private double currentShooterVelocity = 0;
+    private boolean shooterVelocityInRange = false;
 
     @Override
     public void runOpMode() {
@@ -75,26 +76,32 @@ public class EBDecodeTeleop extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            SHOOTER_HIGH_VELOCITY = tuneConstant(
+                    "Tuner: Shooter High Velocity", SHOOTER_HIGH_VELOCITY,
+                    gamepad2.dpad_up, gamepad2.dpad_down,
+                    10, 1600);
+
             drive();
             intake();
             shootWithStutter();
             sortColors();
             updateTelemetry();
 
-            //OdometryPods.update();
             sleep(LOOP_PERIOD);
         }
     }
-/*
-    public double tuneConstant(String name, double value, boolean button_up, boolean button_down) {
+
+    public double tuneConstant(String name, double value,
+                               boolean button_up, boolean button_down,
+                               double increment, double max_val) {
         if (button_up) {
-            value = value + 0.01;
+            value = value + increment;
         } else if (button_down) {
-            value = value - 0.01;
+            value = value - increment;
         }
 
-        if (value > 1) {
-            value = 1;
+        if (value > max_val) {
+            value = max_val;
         } else if (value < 0) {
             value = 0;
         } else if (button_up || button_down) {
@@ -104,7 +111,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         telemetry.addData(name, value);
         return value;
     }
-*/
+
     public void initHardware() {
         // Define and Initialize Motors
         leftFrontDrive = hardwareMap.get(DcMotor.class, "leftFrontDrive");
@@ -120,13 +127,12 @@ public class EBDecodeTeleop extends LinearOpMode {
         shooter = hardwareMap.get(DcMotor.class, "shooter");
         sorter.setDirection(DcMotor.Direction.FORWARD);
         shooter.setDirection(DcMotor.Direction.REVERSE);
+        sorter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         lowerIntake = hardwareMap.get(CRServo.class, "lowerIntake");
         upperIntake = hardwareMap.get(CRServo.class, "upperIntake");
         lowerIntake.setDirection(DcMotor.Direction.FORWARD);
         upperIntake.setDirection(DcMotor.Direction.REVERSE);
-
-        OdometryPods.resetPosAndIMU();  // TODO: Add odometry offsets
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData(">", "Robot Ready.  Press START.");
@@ -184,14 +190,6 @@ public class EBDecodeTeleop extends LinearOpMode {
     }
 
     public void sortColors() {
-        if (gamepad2.xWasPressed()) {
-            if (sorter.getZeroPowerBehavior() == DcMotor.ZeroPowerBehavior.BRAKE) {
-                sorter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            } else {
-                sorter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            }
-        }
-
         boolean isShooting = (gamepad2.right_trigger > 0.25);
         boolean isSorting = gamepad2.y;
         if (isSorting && !isShooting) {
@@ -200,28 +198,6 @@ public class EBDecodeTeleop extends LinearOpMode {
             sorter.setPower(0);
         }
     }
-
-    /*public void shootWithStutter() {
-        boolean isShooting = (gamepad2.right_trigger > 0.25);
-        if (gamepad2.b){
-            //TODO 2 states for moving and not moving
-            if (!sorterIsTicking) {
-                sorterIsTicking = true;
-                sorterIsWaiting = false;
-            }
-            if (sorterTickTimer.time() > 0.2) {
-                // Move!
-                sorterTickTimer.reset();
-                int position = sorter.getCurrentPosition();
-                sorter.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                sorter.setTargetPosition((int) (position+384.5/30) % 384);
-                sorter.setPower(0.5); // TODO: faster
-            }
-
-        } else {
-            // TODO
-        }
-    }*/
 
     public void shootWithStutter() {
         // Check if LongShotMode is being toggled on or off
@@ -233,14 +209,29 @@ public class EBDecodeTeleop extends LinearOpMode {
 
         boolean isShooting = (gamepad2.right_trigger > 0.25);
         boolean isSorting = gamepad2.y;
+        currentShooterVelocity = ((DcMotorEx)shooter).getVelocity();
         if (isShooting && !isSorting) {
-            //isIntaking = false;
             // Always power up the shooter motor if we are holding the shoot button
-            shooterPower = (longShotMode ? SHOOTER_HIGH_POWER : SHOOTER_LOW_POWER);
-            shooter.setPower(shooterPower);
+            targetShooterVelocity = (longShotMode ? SHOOTER_HIGH_VELOCITY : SHOOTER_LOW_VELOCITY);
+            ((DcMotorEx)shooter).setVelocity(targetShooterVelocity);
 
-            // Power up the sorter motor only if the button has been held for 1+ seconds
-            if (shooterWarmupTimer.milliseconds() > 1000) {
+            if (0.95 * targetShooterVelocity < currentShooterVelocity
+                && currentShooterVelocity < 1.05 * targetShooterVelocity) {
+                shooterVelocityInRange = true;
+            }
+
+            if (currentShooterVelocity < 0.8 * targetShooterVelocity
+                || currentShooterVelocity > 1.2 * targetShooterVelocity) {
+                // If we were in range but fell out of range, reset warmup timer
+                if (shooterVelocityInRange) {
+                    shooterWarmupTimer.reset();
+                }
+                shooterVelocityInRange = false;
+            }
+
+            // Power up the sorter motor only after shooter reaches target velocity
+            //   OR button has been held for 3+ seconds
+            if (shooterVelocityInRange || shooterWarmupTimer.milliseconds() > 3000) {
                 int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
                 if (time < STUTTER_PAUSE_DURATION) {
                     sorter.setPower(0);
@@ -248,21 +239,19 @@ public class EBDecodeTeleop extends LinearOpMode {
                     sorter.setPower(SORTER_SHOOTING_POWER);
                 }
             }
-        } else if (isShooting == isSorting) {
-            shooterPower = 0;
-            sorter.setPower(0);
-            shooter.setPower(shooterPower);
+        } else {
+            shooterVelocityInRange = false;
+            shooterWarmupTimer.reset();
         }
 
-        if (shooterPower == 0) {
-            // Whenever the shooter power is set to 0, we'll need to reset our warmup timer
-            shooterWarmupTimer.reset();
+        if (isShooting == isSorting) {
+            targetShooterVelocity = 0;
+            sorter.setPower(0);
+            shooter.setPower(0);
         }
     }
 
     public void intake() {
-        //boolean isShooting = (gamepad2.right_trigger > 0.25);
-
         if (gamepad2.rightBumperWasPressed()){
             isIntaking = !isIntaking;
             if (isIntaking) {
@@ -289,25 +278,12 @@ public class EBDecodeTeleop extends LinearOpMode {
 
     public void updateTelemetry() {
         // Send telemetry message with current state
-        telemetry.addData("Gamepad1 Left Stick X", gamepad1.left_stick_x);
-        telemetry.addData("Gamepad1 Left Stick Y", gamepad1.left_stick_y);
-        telemetry.addData("Gamepad1 Right Stick X", gamepad1.right_stick_x);
-
-        telemetry.addData("Gamepad2 Left Trigger", gamepad2.left_trigger);
-        telemetry.addData("Gamepad2 Right Trigger", gamepad2.right_trigger);
-
-        telemetry.addData("Front Left Power", frontLeftPower);
-        telemetry.addData("Front Right Power", frontRightPower);
-        telemetry.addData("Rear Left Power", rearLeftPower);
-        telemetry.addData("Rear Right Power", rearRightPower);
-
         telemetry.addData("Fast Drive Mode", fastDriveMode);
         telemetry.addData("Long Shot Mode", longShotMode);
-        telemetry.addData("Shooter Power", shooterPower);
-
-        telemetry.addData("Motor Velocity", ((DcMotorEx)shooter).getVelocity());
-        telemetry.addData("Sorter Is Braking",
-                (sorter.getZeroPowerBehavior() == DcMotor.ZeroPowerBehavior.BRAKE));
+        telemetry.addData("Current Shooter Velocity", currentShooterVelocity);
+        telemetry.addData("Target Shooter Velocity", targetShooterVelocity);
+        telemetry.addData("Shooter Velocity In Range", shooterVelocityInRange);
+        telemetry.addData("Shooter Warmup Timer", (int)shooterWarmupTimer.milliseconds());
 
         telemetry.update();
     }

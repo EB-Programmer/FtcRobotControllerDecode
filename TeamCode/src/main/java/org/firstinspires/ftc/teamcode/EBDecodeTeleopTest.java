@@ -212,57 +212,52 @@ public class EBDecodeTeleopTest extends LinearOpMode {
         // TODO: still need stutter?
         // TODO: works for shooting and sorting?
         // TODO: shoot method likely needs to cancel active sort if they conflict
-        //boolean isShooting = (gamepad2.right_trigger > 0.25);
-        boolean isShooting = false;
+
         boolean isSorting = sorter.isBusy();
         boolean sortRequested = gamepad2.yWasPressed();
-        if (sortRequested && !isShooting && !isSorting) {
+        if (sortRequested && !isSorting) {
             double currentPosition = sorter.getCurrentPosition();
             double targetPosition = currentPosition - (384.5 / 3);
             double targetIndex = Math.round(targetPosition / (384.5 / 3));
             targetPosition = targetIndex * (384.5 / 3);
             sorter.setPower(SORTER_POWER / 2);
             sorter.setTargetPosition((int) Math.round(targetPosition));
-
-            if (true || shooterWarmupTimer.milliseconds() > 1000) {
-                int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
-                if (time < STUTTER_PAUSE_DURATION) {
-                    sorter.setPower(0);
-                } else {
-                    sorter.setPower(SORTER_POWER / 2);
-                }
+        } else if (isSorting) {
+            int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
+            if (time < STUTTER_PAUSE_DURATION) {
+                sorter.setPower(0);
+            } else {
+                sorter.setPower(SORTER_POWER / 2);
             }
         }
     }
 
+
+
     public void testSorterForShooting() {
         // Tap X to move sorter paddle 1/3 rotation counterclockwise
-        // TODO: test various speeds
-        // TODO: still need stutter?
-        // TODO: works for shooting and sorting?
-        // TODO: shoot method likely needs to cancel active sort if they conflict
-        //boolean isShooting = (gamepad2.right_trigger > 0.25);
-        boolean isShooting = false;
+
         boolean isSorting = sorter.isBusy();
         boolean sortRequested = gamepad2.xWasPressed();
-        if (sortRequested && !isShooting && !isSorting) {
+        if (sortRequested && !isSorting) {
             double currentPosition = sorter.getCurrentPosition();
             double targetPosition = currentPosition + (384.5 / 3);
             double targetIndex = Math.round(targetPosition / (384.5 / 3));
             targetPosition = targetIndex * (384.5 / 3);
             sorter.setPower(SORTER_POWER);
             sorter.setTargetPosition((int) Math.round(targetPosition));
-
-            if (true || shooterWarmupTimer.milliseconds() > 1000) {
-                int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
-                if (time < STUTTER_PAUSE_DURATION) {
-                    sorter.setPower(0);
-                } else {
-                    sorter.setPower(SORTER_POWER);
-                }
+        } else if (isSorting) {
+            int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
+            if (time < STUTTER_PAUSE_DURATION) {
+                sorter.setPower(0);
+            } else {
+                sorter.setPower(SORTER_POWER);
             }
         }
     }
+
+
+
 
     public void shootWithStutter() {
         // Check if LongShotMode is being toggled on or off
@@ -278,23 +273,13 @@ public class EBDecodeTeleopTest extends LinearOpMode {
         if (isShooting && !isSorting) {
             // Always power up the shooter motor if we are holding the shoot button
             shooterPower = (longShotMode ? SHOOTER_HIGH_POWER : SHOOTER_LOW_POWER);
-            shooter.setPower(shooterPower);
-
-            // TODO
-            //((DcMotorEx)shooter).setVelocity(SHOOTER_VELOCITY);
-
-            // Power up the sorter motor only if the button has been held for 1+ seconds
-            /*if (shooterWarmupTimer.milliseconds() > 1000) {
-                int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
-                if (time < STUTTER_PAUSE_DURATION) {
-                    sorter.setPower(0);
-                } else {
-                    sorter.setPower(SORTER_SHOOTING_POWER);
-                }
-            }*/
+            if (longShotMode) {
+                shooter.setPower(shooterPower);
+            } else {
+                ((DcMotorEx) shooter).setVelocity(SHOOTER_VELOCITY);
+            }
         } else if (isShooting == isSorting) {
             shooterPower = 0;
-            //sorter.setPower(0);
             shooter.setPower(shooterPower);
         }
 

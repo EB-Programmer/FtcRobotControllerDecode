@@ -76,6 +76,8 @@ public class EBDecodeAuton extends LinearOpMode {
         lowerIntake.setDirection(DcMotor.Direction.FORWARD);
         upperIntake.setDirection(DcMotor.Direction.REVERSE);
 
+        OdometryPods.resetPosAndIMU();
+
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Ready to run");
         telemetry.update();
@@ -139,7 +141,6 @@ public class EBDecodeAuton extends LinearOpMode {
         // Run the sorter motor for 10 seconds to push all the artifacts into the launcher
         runtime.reset();
         while (runtime.milliseconds() < SHOOTER_DURATION) {
-            //upperIntake.setPower(INTAKE_POWER);  // TODO: not sure if we want/need this
             int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
             if (time < STUTTER_PAUSE_DURATION) {
                 sorter.setPower(0);
