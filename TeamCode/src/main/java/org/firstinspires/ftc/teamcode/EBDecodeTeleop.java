@@ -7,6 +7,13 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+import java.util.List;
+
 /*
  * This OpMode executes a POV Game style Teleop for a direct drive robot
  * The code is structured as a LinearOpMode
@@ -44,6 +51,8 @@ public class EBDecodeTeleop extends LinearOpMode {
     private DcMotor shooter = null;
     private CRServo lowerIntake = null;
     private CRServo upperIntake = null;
+    private AprilTagProcessor aprilTag = null;
+    private VisionPortal visionPortal = null;
 
     private static final double DRIVE_HIGH_POWER = 1.0;
     private static final double DRIVE_LOW_POWER = 0.4;
@@ -65,6 +74,7 @@ public class EBDecodeTeleop extends LinearOpMode {
     private double targetShooterVelocity = 0;
     private double currentShooterVelocity = 0;
     private boolean shooterVelocityInRange = false;
+    private int motifID = 0;
 
     @Override
     public void runOpMode() {
@@ -85,6 +95,7 @@ public class EBDecodeTeleop extends LinearOpMode {
             intake();
             shootWithStutter();
             sortColors();
+            identifyMotif();
             updateTelemetry();
 
             sleep(LOOP_PERIOD);
@@ -133,6 +144,13 @@ public class EBDecodeTeleop extends LinearOpMode {
         upperIntake = hardwareMap.get(CRServo.class, "upperIntake");
         lowerIntake.setDirection(DcMotor.Direction.FORWARD);
         upperIntake.setDirection(DcMotor.Direction.REVERSE);
+
+        // Initialize webcam and April Tag processor
+        aprilTag = new AprilTagProcessor.Builder().build();
+        VisionPortal.Builder builder = new VisionPortal.Builder();
+        builder.setCamera(hardwareMap.get(WebcamName.class, "webcam"));
+        builder.addProcessor(aprilTag);
+        visionPortal = builder.build();
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData(">", "Robot Ready.  Press START.");
@@ -187,6 +205,18 @@ public class EBDecodeTeleop extends LinearOpMode {
         rightFrontDrive.setPower(frontRightPower);
         leftRearDrive.setPower(rearLeftPower);
         rightRearDrive.setPower(rearRightPower);
+    }
+
+    public void identifyMotif() {
+        /*if (motifID == 0) {
+            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+            for (AprilTagDetection detection : currentDetections) {
+                if (detection.metadata != null && 21 <= detection.id && detection.id <= 23) {
+                    motifID = detection.id;
+                    visionPortal.stopStreaming();
+                }
+            }
+        }*/
     }
 
     public void sortColors() {
@@ -284,6 +314,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         telemetry.addData("Target Shooter Velocity", targetShooterVelocity);
         telemetry.addData("Shooter Velocity In Range", shooterVelocityInRange);
         telemetry.addData("Shooter Warmup Timer", (int)shooterWarmupTimer.milliseconds());
+        telemetry.addData("Motif ID", motifID);
 
         telemetry.update();
     }
