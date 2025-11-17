@@ -28,8 +28,8 @@ public class Constants {
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(190)  // TODO: re-measure
-            .strafePodX(-178)  // TODO: re-measure
+            .forwardPodY(185)  // TODO: re-measure
+            .strafePodX(-194)  // TODO: re-measure
             .distanceUnit(DistanceUnit.MM)
             .hardwareMapName("pinpoint")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD)

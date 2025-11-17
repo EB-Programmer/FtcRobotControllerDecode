@@ -76,7 +76,8 @@ public class EBDecodeAuton extends LinearOpMode {
         lowerIntake.setDirection(DcMotor.Direction.FORWARD);
         upperIntake.setDirection(DcMotor.Direction.REVERSE);
 
-        OdometryPods.resetPosAndIMU();
+        // TODO: fix runtime error
+        //OdometryPods.resetPosAndIMU();
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Ready to run");

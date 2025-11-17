@@ -7,12 +7,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-
-import java.util.List;
 
 /*
  * This OpMode executes a POV Game style Teleop for a direct drive robot
@@ -37,12 +33,6 @@ import java.util.List;
 
 @TeleOp(group="EBDecode")
 public class EBDecodeTeleop extends LinearOpMode {
-    /* Declare OpMode members:
-     *   4 Drive Motors
-     *   1 Color Sorter Motor
-     *   1 Shooter Motor
-     *   2 Intake Servos
-     */
     private DcMotor leftFrontDrive   = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor leftRearDrive   = null;
@@ -60,7 +50,7 @@ public class EBDecodeTeleop extends LinearOpMode {
     private static final double SORTER_SHOOTING_POWER = 0.4;
     private static double SHOOTER_HIGH_VELOCITY = 1000;
     private static double SHOOTER_LOW_VELOCITY = 800;
-    private static final double INTAKE_POWER = 1.0;
+    private static final double INTAKE_POWER = 0.5;
     private static final int STUTTER_PERIOD = 160;  // milliseconds
     private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
     private static final int LOOP_PERIOD = 20;  // milliseconds
@@ -89,7 +79,7 @@ public class EBDecodeTeleop extends LinearOpMode {
             SHOOTER_HIGH_VELOCITY = tuneConstant(
                     "Tuner: Shooter High Velocity", SHOOTER_HIGH_VELOCITY,
                     gamepad2.dpad_up, gamepad2.dpad_down,
-                    10, 1600);
+                    10, 2000);
 
             drive();
             intake();
@@ -146,11 +136,11 @@ public class EBDecodeTeleop extends LinearOpMode {
         upperIntake.setDirection(DcMotor.Direction.REVERSE);
 
         // Initialize webcam and April Tag processor
-        aprilTag = new AprilTagProcessor.Builder().build();
+        /*aprilTag = new AprilTagProcessor.Builder().build();
         VisionPortal.Builder builder = new VisionPortal.Builder();
         builder.setCamera(hardwareMap.get(WebcamName.class, "webcam"));
         builder.addProcessor(aprilTag);
-        visionPortal = builder.build();
+        visionPortal = builder.build();*/
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData(">", "Robot Ready.  Press START.");

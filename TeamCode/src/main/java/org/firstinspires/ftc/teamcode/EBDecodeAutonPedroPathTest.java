@@ -4,6 +4,7 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -27,7 +28,13 @@ public class EBDecodeAutonPedroPathTest extends EBDecodeAuton {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         follower = Constants.createFollower(hardwareMap);
         pathObj = new Paths(follower);
-        pathList = Arrays.asList(pathObj.Path1, pathObj.Path2);  // TODO: update with all names
+        pathList = Arrays.asList(  // TODO: update with all path member names
+                pathObj.Path1,
+                pathObj.Path2,
+                pathObj.Path3,
+                pathObj.Path4,
+                pathObj.Path5
+        );
         follower.setStartingPose(pathList.get(0).getPath(0).getPose(0));
 
         while (pathState < pathList.size() || follower.isBusy()) {
@@ -58,10 +65,11 @@ public class EBDecodeAutonPedroPathTest extends EBDecodeAuton {
         }
     }
 
-    public static class Paths {
+    // Blue Far: Pick up 3, shoot
+    public static class PathsBlueFarDemo {
         public PathChain Path1;
         public PathChain Path2;
-        public Paths(Follower follower) {
+        public PathsBlueFarDemo(Follower follower) {
             Path1 = follower
                     .pathBuilder()
                     .addPath(
@@ -84,6 +92,58 @@ public class EBDecodeAutonPedroPathTest extends EBDecodeAuton {
                     )
                     .setTangentHeadingInterpolation()
                     .setReversed()
+                    .build();
+        }
+    }
+
+    // Blue Near: Read obelisk, shoot, pick up 3, shoot
+    public static class Paths {
+
+        public PathChain Path1;
+        public PathChain Path2;
+        public PathChain Path3;
+        public PathChain Path4;
+        public PathChain Path5;
+
+        public Paths(Follower follower) {
+            Path1 = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(18.024, 119.314), new Pose(47.804, 95.608))
+                    )
+                    .setConstantHeadingInterpolation(Math.toRadians(54))
+                    .build();
+
+            Path2 = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(47.804, 95.608), new Pose(53.600, 89.700))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(54), Math.toRadians(133))
+                    .build();
+
+            Path3 = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(53.600, 89.700), new Pose(45.257, 84.245))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(133), Math.toRadians(180))
+                    .build();
+
+            Path4 = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(45.257, 84.245), new Pose(15.086, 84.049))
+                    )
+                    .setConstantHeadingInterpolation(Math.toRadians(180))
+                    .build();
+
+            Path5 = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(15.086, 84.049), new Pose(53.600, 89.700))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(133))
                     .build();
         }
     }
