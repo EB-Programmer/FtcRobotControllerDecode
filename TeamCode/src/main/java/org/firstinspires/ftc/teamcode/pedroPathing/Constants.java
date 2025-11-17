@@ -17,7 +17,7 @@ public class Constants {
             .mass(12);  // TODO: need to re-measure
 
     public static MecanumConstants driveConstants = new MecanumConstants()
-            .maxPower(0.5)  // TODO: increase
+            .maxPower(0.5)  // TODO: increase?
             .rightFrontMotorName("rightFrontDrive")
             .rightRearMotorName("rightRearDrive")
             .leftRearMotorName("leftRearDrive")
@@ -28,8 +28,8 @@ public class Constants {
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(185)  // TODO: re-measure
-            .strafePodX(-194)  // TODO: re-measure
+            .forwardPodY(185)
+            .strafePodX(-194)
             .distanceUnit(DistanceUnit.MM)
             .hardwareMapName("pinpoint")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD)

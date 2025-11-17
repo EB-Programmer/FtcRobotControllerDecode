@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 
 @Autonomous(group="EBDecode")
+@Disabled
 public class EBDecodeAutonBlueNear extends EBDecodeAuton {
     @Override
     public void auton() {
