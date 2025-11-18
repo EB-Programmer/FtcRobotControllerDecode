@@ -9,11 +9,21 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import java.util.Arrays;
 import java.util.List;
 
+/*
+    To modify this Pedro Pathing Auton OpMode:
+      - Customize a new path at https://visualizer.pedropathing.com/
+      - Click the "</>" button and copy the generated code
+      - Replace the whole "public static class Paths" block below with the new code
+      - Update the return value of getPathList() below to list each Path member of the
+        new code. E.g. if the new code has Path1..Path6, list each of these names inside
+        of "return Arrays.asList()".
+ */
 @Autonomous(group="EBDecode")
 public class EBDecodeAutonPedroBlueFar extends EBDecodeAutonPedro {
     @Override
     public List<PathChain> getPathList() {
         Paths paths = new Paths(follower);
+        // TODO: Keep this updated with the names of each PathChain in class Paths below
         return Arrays.asList(
                 paths.Path1,
                 paths.Path2,
@@ -22,7 +32,7 @@ public class EBDecodeAutonPedroBlueFar extends EBDecodeAutonPedro {
         );
     }
 
-    // Blue Near: Read obelisk(?) + shoot, pick up 3, shoot
+    // Blue Far: Read obelisk(?) + shoot, pick up 3, shoot
     public static class Paths {
         public PathChain Path1;
         public PathChain Path2;
