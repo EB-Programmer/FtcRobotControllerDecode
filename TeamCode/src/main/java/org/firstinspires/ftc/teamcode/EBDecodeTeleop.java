@@ -78,7 +78,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         while (opModeIsActive()) {
             SHOOTER_HIGH_VELOCITY = tuneConstant(
                     "Tuner: Shooter High Velocity", SHOOTER_HIGH_VELOCITY,
-                    gamepad2.dpad_up, gamepad2.dpad_down,
+                    gamepad2.dpadUpWasPressed(), gamepad2.dpadDownWasPressed(),
                     10, 10000);
 
             drive();
@@ -105,8 +105,6 @@ public class EBDecodeTeleop extends LinearOpMode {
             value = max_val;
         } else if (value < 0) {
             value = 0;
-        } else if (button_up || button_down) {
-            sleep(50);
         }
 
         telemetry.addData(name, value);
