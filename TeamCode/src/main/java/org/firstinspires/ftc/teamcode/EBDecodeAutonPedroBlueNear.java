@@ -33,6 +33,26 @@ public class EBDecodeAutonPedroBlueNear extends EBDecodeAutonPedro {
         );
     }
 
+    @Override
+    public void pathStateAction(int state) {
+        if (state == 0) {
+            // nothing
+        } else if (state == 1) {
+            sleep(250);
+        } else if (state == 2) {
+            shoot(SHOOTER_LOW_POWER);
+            sleep(250);
+        } else if (state == 3) {
+            intake(true);
+            sleep(250);
+        } else if (state == 4) {
+            sleep(250);
+            intake(false);
+        } else if (state == 5) {
+            shoot(SHOOTER_LOW_POWER);
+        }
+    }
+
     // Blue Near: Read obelisk, shoot, pick up 3, shoot
     public static class Paths {
         public PathChain Path1;

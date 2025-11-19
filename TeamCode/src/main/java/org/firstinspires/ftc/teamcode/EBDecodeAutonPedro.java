@@ -19,7 +19,6 @@ public class EBDecodeAutonPedro extends EBDecodeAuton {
         follower = Constants.createFollower(hardwareMap);
         pathList = getPathList();
         follower.setStartingPose(pathList.get(0).getPath(0).getPose(0));
-        intake(true);
 
         while (pathState < pathList.size() || follower.isBusy()) {
             follower.update();
@@ -37,15 +36,26 @@ public class EBDecodeAutonPedro extends EBDecodeAuton {
         return new ArrayList<PathChain>();
     }
 
+    public void pathStateAction(int state) {
+        if (state < pathList.size()) {
+            intake(true);
+        } else {
+            intake(false);
+        }
+        sleep(1000);
+    }
+
     public void autonomousPathUpdate() {
         if (pathState < pathList.size()) {
             if (!follower.isBusy()) {
-                sleep(1000);
+                pathStateAction(pathState);
                 follower.followPath(pathList.get(pathState));
                 pathState += 1;
             }
-        } else {
-            intake(false);
+        } else if (pathState == pathList.size()) {
+            // Reached the end of the final path
+            pathStateAction(pathState);
+            pathState += 1;
         }
     }
 }

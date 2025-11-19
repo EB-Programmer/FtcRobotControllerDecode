@@ -32,6 +32,24 @@ public class EBDecodeAutonPedroBlueFar extends EBDecodeAutonPedro {
         );
     }
 
+    @Override
+    public void pathStateAction(int state) {
+        if (state == 0) {
+            // nothing
+        } else if (state == 1) {
+            shoot(SHOOTER_HIGH_POWER);
+            sleep(250);
+        } else if (state == 2) {
+            intake(true);
+            sleep(250);
+        } else if (state == 3) {
+            sleep(250);
+            intake(false);
+        } else if (state == 4) {
+            shoot(SHOOTER_HIGH_POWER);
+        }
+    }
+
     // Blue Far: Read obelisk(?) + shoot, pick up 3, shoot
     public static class Paths {
         public PathChain Path1;

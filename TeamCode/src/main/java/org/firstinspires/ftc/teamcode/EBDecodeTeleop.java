@@ -10,6 +10,11 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /*
  * This OpMode executes a POV Game style Teleop for a direct drive robot
  * The code is structured as a LinearOpMode
@@ -65,6 +70,8 @@ public class EBDecodeTeleop extends LinearOpMode {
     private double currentShooterVelocity = 0;
     private boolean shooterVelocityInRange = false;
     private int motifID = 0;
+    private double svPcts[] = new double[50];
+    private int svIdx = 0;
 
     @Override
     public void runOpMode() {
@@ -76,19 +83,18 @@ public class EBDecodeTeleop extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            /*
             if(longShotMode) {
                 SHOOTER_HIGH_VELOCITY = tuneConstant(
                         "Tuner: Shooter High Velocity", SHOOTER_HIGH_VELOCITY,
                         gamepad2.dpadUpWasPressed(), gamepad2.dpadDownWasPressed(),
-                        25, 2500);
+                        25, 3000);
             } else {
                 SHOOTER_LOW_VELOCITY = tuneConstant(
                         "Tuner: Shooter Low Velocity", SHOOTER_LOW_VELOCITY,
                         gamepad2.dpadUpWasPressed(), gamepad2.dpadDownWasPressed(),
-                        25, 2500);
+                        25, 3000);
             }
-            */
+
             drive();
             intake();
             shootWithStutter();
@@ -239,9 +245,6 @@ public class EBDecodeTeleop extends LinearOpMode {
         if (isShooting && !isSorting) {
             // Always power up the shooter motor if we are holding the shoot button
             targetShooterVelocity = (longShotMode ? SHOOTER_HIGH_VELOCITY : SHOOTER_LOW_VELOCITY);
-
-            isOuttaking = true;
-
             ((DcMotorEx)shooter).setVelocity(targetShooterVelocity);
 
             // Wait until shooter velocity is very close to target velocity
@@ -269,9 +272,10 @@ public class EBDecodeTeleop extends LinearOpMode {
                 } else {
                     sorter.setPower(SORTER_SHOOTING_POWER);
                 }
+            } else {
+                sorter.setPower(0);
             }
         } else {
-            isOuttaking = false;
             targetShooterVelocity = 0;
             shooterVelocityInRange = false;
             shooterWarmupTimer.reset();
@@ -286,39 +290,58 @@ public class EBDecodeTeleop extends LinearOpMode {
     }
 
     public void intake() {
+        boolean isShooting = (gamepad2.right_trigger > 0.25);
+
         if (gamepad2.rightBumperWasPressed()){
+            // Toggle intake
             isIntaking = !isIntaking;
-            if (isIntaking) {
-                isOuttaking = false;
-            }
+            isOuttaking = false;
         } else if (gamepad2.leftBumperWasPressed()){
+            // Toggle outtake
             isOuttaking = !isOuttaking;
-            if (isOuttaking) {
-                isIntaking = false;
-            }
+            isIntaking = false;
         }
 
-        if (isOuttaking && !isIntaking) {
-            lowerIntake.setPower(-INTAKE_POWER);
-            upperIntake.setPower(-INTAKE_POWER);
-        } else if (isIntaking && !isOuttaking) {
+        if (isIntaking || isShooting) {  // Always run intake while shooting
             lowerIntake.setPower(INTAKE_POWER);
             upperIntake.setPower(INTAKE_POWER);
+        } else if (isOuttaking) {
+            lowerIntake.setPower(-INTAKE_POWER);
+            upperIntake.setPower(-INTAKE_POWER);
         } else {
             lowerIntake.setPower(0);
             upperIntake.setPower(0);
         }
     }
 
+    public double getShooterVelocityPctMin() {
+        double ret = 100;
+        for (int i = 0; i < 50; i++) {
+            ret = Math.min(ret, svPcts[i]);
+        }
+        return ret;
+    }
+
     public void updateTelemetry() {
         // Send telemetry message with current state
+        //telemetry.addData("Motif ID", motifID);
         telemetry.addData("Fast Drive Mode", fastDriveMode);
         telemetry.addData("Long Shot Mode", longShotMode);
+        telemetry.addData("Shooter Warmup Timer", (int)shooterWarmupTimer.milliseconds());
+        telemetry.addData("Shooter Velocity In Range", shooterVelocityInRange);
         telemetry.addData("Current Shooter Velocity", currentShooterVelocity);
         telemetry.addData("Target Shooter Velocity", targetShooterVelocity);
-        telemetry.addData("Shooter Velocity In Range", shooterVelocityInRange);
-        telemetry.addData("Shooter Warmup Timer", (int)shooterWarmupTimer.milliseconds());
-        telemetry.addData("Motif ID", motifID);
+
+        double shooterVelocityPct = 100;
+        if (targetShooterVelocity > 0) {
+            shooterVelocityPct = 100 * currentShooterVelocity / targetShooterVelocity;
+        }
+        telemetry.addData("Shooter Velocity %", shooterVelocityPct);
+
+        svPcts[svIdx % 50] = shooterVelocityPct;
+        svIdx += 1;
+        double shooterVelocityPctMin = getShooterVelocityPctMin();
+        telemetry.addData("Shooter Velocity % Min", shooterVelocityPctMin);
 
         telemetry.update();
     }

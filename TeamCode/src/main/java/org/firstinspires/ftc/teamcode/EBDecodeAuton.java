@@ -22,7 +22,7 @@ public class EBDecodeAuton extends LinearOpMode {
     public ElapsedTime runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
     public static double SORTER_SORTING_POWER = -0.2;
-    public static double SORTER_SHOOTING_POWER = 0.4;
+    public static double SORTER_SHOOTING_POWER = 0.6;
     public static double SHOOTER_HIGH_POWER = 0.95;
     public static double SHOOTER_LOW_POWER = 0.8;
     public static double INTAKE_POWER = 0.8;
@@ -32,7 +32,7 @@ public class EBDecodeAuton extends LinearOpMode {
     public static final double DRIVE_SPEED = 0.4;
     public static final double TURN_SPEED = 0.25;
     public static final int SHOOTER_WARMUP_DURATION = 1000;  // milliseconds
-    public static final int SHOOTER_DURATION = 10000;  // milliseconds
+    public static final int SHOOTER_DURATION = 7000;  // milliseconds
 
     @Override
     public void runOpMode() {
@@ -69,7 +69,7 @@ public class EBDecodeAuton extends LinearOpMode {
         sorter = hardwareMap.get(DcMotor.class, "sorter");
         shooter = hardwareMap.get(DcMotor.class, "shooter");
         sorter.setDirection(DcMotor.Direction.FORWARD);
-        shooter.setDirection(DcMotor.Direction.REVERSE);
+        shooter.setDirection(DcMotor.Direction.FORWARD);
 
         lowerIntake = hardwareMap.get(CRServo.class, "lowerIntake");
         upperIntake = hardwareMap.get(CRServo.class, "upperIntake");
@@ -143,6 +143,7 @@ public class EBDecodeAuton extends LinearOpMode {
 
     public void shoot(double shooterPower) {
         // Let shooter motor warm up for 1 second before pushing artifacts into launcher
+        intake(true);
         shooter.setPower(shooterPower);
         sleep(SHOOTER_WARMUP_DURATION);
 
@@ -160,7 +161,6 @@ public class EBDecodeAuton extends LinearOpMode {
 
         shooter.setPower(0);
         sorter.setPower(0);
-        lowerIntake.setPower(0);
-        upperIntake.setPower(0);
+        intake(false);
     }
 }
