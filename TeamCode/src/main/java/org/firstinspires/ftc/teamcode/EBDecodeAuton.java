@@ -4,12 +4,11 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
 
 @Autonomous(group="EBDecodeTest")
 public class EBDecodeAuton extends LinearOpMode {
-    /* Declare OpMode members. */
     public DcMotor leftDrive = null;
     public DcMotor rightDrive = null;
     public DcMotor leftDriveBack = null;
@@ -19,20 +18,23 @@ public class EBDecodeAuton extends LinearOpMode {
     public CRServo lowerIntake = null;
     public CRServo upperIntake = null;
 
-    public ElapsedTime runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-
-    public static double SORTER_SORTING_POWER = -0.2;
+    public static double SORTER_SORTING_POWER = -0.3;
     public static double SORTER_SHOOTING_POWER = 0.6;
-    public static double SHOOTER_HIGH_POWER = 0.95;
-    public static double SHOOTER_LOW_POWER = 0.8;
+    private static double SHOOTER_HIGH_VELOCITY = 2350;
+    private static double SHOOTER_LOW_VELOCITY = 1800;
     public static double INTAKE_POWER = 0.8;
-    public static final int STUTTER_PERIOD = 160;  // milliseconds
-    public static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
+    public static double INTAKE_LOW_POWER = 0.1;
+    public static final int STUTTER_PERIOD = 200;  // milliseconds
+    public static final int STUTTER_PAUSE_DURATION = 160;  // milliseconds
     public static final int LOOP_PERIOD = 20;  // milliseconds
-    public static final double DRIVE_SPEED = 0.4;
-    public static final double TURN_SPEED = 0.25;
-    public static final int SHOOTER_WARMUP_DURATION = 1000;  // milliseconds
     public static final int SHOOTER_DURATION = 7000;  // milliseconds
+    public static final double SORTER_TICKS = 384.5;
+
+    public ElapsedTime shooterWarmupTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public ElapsedTime shooterTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public double targetShooterVelocity = 0;
+    public double currentShooterVelocity = 0;
+    public boolean shooterVelocityInRange = false;
 
     @Override
     public void runOpMode() {
@@ -70,6 +72,9 @@ public class EBDecodeAuton extends LinearOpMode {
         shooter = hardwareMap.get(DcMotor.class, "shooter");
         sorter.setDirection(DcMotor.Direction.FORWARD);
         shooter.setDirection(DcMotor.Direction.FORWARD);
+        sorter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        sorter.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        sorter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         lowerIntake = hardwareMap.get(CRServo.class, "lowerIntake");
         upperIntake = hardwareMap.get(CRServo.class, "upperIntake");
@@ -81,14 +86,23 @@ public class EBDecodeAuton extends LinearOpMode {
         telemetry.update();
     }
 
-    public void intake(boolean active) {
+    public void intake(boolean active, boolean isShooting) {
         if (active) {
-            lowerIntake.setPower(INTAKE_POWER);
-            upperIntake.setPower(INTAKE_POWER);
+            if (isShooting) {
+                lowerIntake.setPower(0);
+                upperIntake.setPower(INTAKE_LOW_POWER);
+            } else {
+                lowerIntake.setPower(INTAKE_POWER);
+                upperIntake.setPower(INTAKE_POWER);
+            }
         } else {
             lowerIntake.setPower(0);
             upperIntake.setPower(0);
         }
+    }
+
+    public void intake(boolean active) {
+        intake(active, false);
     }
 
     public void drive(double speed, long time) {
@@ -141,26 +155,87 @@ public class EBDecodeAuton extends LinearOpMode {
         rightDriveBack.setPower(0);
     }
 
-    public void shoot(double shooterPower) {
-        // Let shooter motor warm up for 1 second before pushing artifacts into launcher
-        intake(true);
-        shooter.setPower(shooterPower);
-        sleep(SHOOTER_WARMUP_DURATION);
 
-        // Run the sorter motor for 10 seconds to push all the artifacts into the launcher
-        runtime.reset();
-        while (runtime.milliseconds() < SHOOTER_DURATION) {
-            int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
-            if (time < STUTTER_PAUSE_DURATION) {
-                sorter.setPower(0);
-            } else {
-                sorter.setPower(SORTER_SHOOTING_POWER);
+    public void resetSorter() {
+        double position = sorter.getCurrentPosition();
+        double positionMod = Math.abs(position % SORTER_TICKS);
+        if (positionMod < SORTER_TICKS / 8 || positionMod > 7 * SORTER_TICKS / 8) {
+            // close enough!
+            return;
+        }
+
+        // Calculate the next multiple of SORTER_TICKS in the negative direction from position
+        // Negative direction is clockwise (sorting rather than shooting)
+        double targetPosition = position - SORTER_TICKS;
+        targetPosition = (Math.floor(Math.abs(targetPosition) / SORTER_TICKS)
+                * SORTER_TICKS
+                * (targetPosition < 0 ? -1 : 1));
+        sorter.setPower(0);
+        sorter.setTargetPosition((int) Math.round(targetPosition));
+        sorter.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        sorter.setPower(SORTER_SORTING_POWER);
+    }
+
+    public void warmupShooter(boolean longShot) {
+        double newTargetShooterVelocity = (longShot ? SHOOTER_HIGH_VELOCITY : SHOOTER_LOW_VELOCITY);
+        if (newTargetShooterVelocity != targetShooterVelocity) {
+            shooterWarmupTimer.reset();
+        }
+        targetShooterVelocity = newTargetShooterVelocity;
+        ((DcMotorEx)shooter).setVelocity(targetShooterVelocity);
+    }
+
+    public void shootWithStutter(boolean longShot) {
+        warmupShooter(longShot);
+
+        // Make sure sorter is turned off and ready to run
+        sorter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        sorter.setPower(0);
+
+        int shotCount = 0;
+        shooterTimer.reset();
+        while (shooterTimer.milliseconds() < SHOOTER_DURATION && shotCount < 3) {
+            currentShooterVelocity = ((DcMotorEx)shooter).getVelocity();
+
+            // Wait until shooter velocity is very close to target velocity
+            if (0.95 * targetShooterVelocity < currentShooterVelocity
+                    && currentShooterVelocity < 1.05 * targetShooterVelocity) {
+                shooterVelocityInRange = true;
             }
+
+            // If shooter velocity later falls out of tolerance, pause the sorter and let the
+            // shooter warm back up
+            if (currentShooterVelocity < 0.875 * targetShooterVelocity) {
+                if (shooterVelocityInRange) {
+                    shotCount += 1;
+                    shooterWarmupTimer.reset();
+                }
+                shooterVelocityInRange = false;
+            }
+
+            // Power up the sorter motor only after shooter reaches target velocity
+            // OR button has been held for 3+ seconds
+            if (shooterVelocityInRange || shooterWarmupTimer.milliseconds() > 3000) {
+                intake(true, true);
+                int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
+                if (time < STUTTER_PAUSE_DURATION) {
+                    sorter.setPower(0);
+                } else {
+                    sorter.setPower(SORTER_SHOOTING_POWER);
+                }
+            } else {
+                intake(false);
+                sorter.setPower(0);
+            }
+
             sleep(LOOP_PERIOD);
         }
 
+        intake(false);
+        targetShooterVelocity = 0;
+        shooterVelocityInRange = false;
+        shooterWarmupTimer.reset();
         shooter.setPower(0);
         sorter.setPower(0);
-        intake(false);
     }
 }

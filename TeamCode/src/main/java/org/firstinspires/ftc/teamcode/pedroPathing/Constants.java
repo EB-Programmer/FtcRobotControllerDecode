@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(12);  // TODO: need to re-measure
+            .mass(15);  // TODO: need to re-measure
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(0.5)  // TODO: increase?

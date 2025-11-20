@@ -10,11 +10,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 /*
  * This OpMode executes a POV Game style Teleop for a direct drive robot
  * The code is structured as a LinearOpMode
@@ -51,13 +46,14 @@ public class EBDecodeTeleop extends LinearOpMode {
 
     private static final double DRIVE_HIGH_POWER = 1.0;
     private static final double DRIVE_LOW_POWER = 0.4;
-    private static final double SORTER_SORTING_POWER = -0.1;
+    private static final double SORTER_SORTING_POWER = -0.3;
     private static final double SORTER_SHOOTING_POWER = 0.6;
-    private static double SHOOTER_HIGH_VELOCITY = 2300;
+    private static double SHOOTER_HIGH_VELOCITY = 2350;
     private static double SHOOTER_LOW_VELOCITY = 1800;
     private static final double INTAKE_POWER = 0.8;
-    private static final int STUTTER_PERIOD = 160;  // milliseconds
-    private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
+    private static final double INTAKE_LOW_POWER = 0.1;
+    private static final int STUTTER_PERIOD = 200;  // milliseconds
+    private static final int STUTTER_PAUSE_DURATION = 160;  // milliseconds
     private static final int LOOP_PERIOD = 20;  // milliseconds
 
     private ElapsedTime shooterWarmupTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -255,8 +251,7 @@ public class EBDecodeTeleop extends LinearOpMode {
 
             // If shooter velocity later falls out of tolerance, pause the sorter and let the
             // shooter warm back up
-            if (currentShooterVelocity < 0.8 * targetShooterVelocity
-                || currentShooterVelocity > 1.2 * targetShooterVelocity) {
+            if (currentShooterVelocity < 0.875 * targetShooterVelocity) {
                 if (shooterVelocityInRange) {
                     shooterWarmupTimer.reset();
                 }
@@ -302,12 +297,15 @@ public class EBDecodeTeleop extends LinearOpMode {
             isIntaking = false;
         }
 
-        if (isIntaking || isShooting) {  // Always run intake while shooting
-            lowerIntake.setPower(INTAKE_POWER);
-            upperIntake.setPower(INTAKE_POWER);
-        } else if (isOuttaking) {
+        if (isOuttaking) {
             lowerIntake.setPower(-INTAKE_POWER);
             upperIntake.setPower(-INTAKE_POWER);
+        } else if (isShooting) {
+            lowerIntake.setPower(0);
+            upperIntake.setPower(INTAKE_LOW_POWER);
+        } else if (isIntaking) {
+            lowerIntake.setPower(INTAKE_POWER);
+            upperIntake.setPower(INTAKE_POWER);
         } else {
             lowerIntake.setPower(0);
             upperIntake.setPower(0);
