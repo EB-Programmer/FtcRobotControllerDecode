@@ -24,17 +24,21 @@ public class EBDecodeAuton extends LinearOpMode {
     private static double SHOOTER_LOW_VELOCITY = 1800;
     public static double INTAKE_POWER = 0.8;
     public static double INTAKE_LOW_POWER = 0.1;
-    public static final int STUTTER_PERIOD = 200;  // milliseconds
-    public static final int STUTTER_PAUSE_DURATION = 160;  // milliseconds
+    public static final int STUTTER_PERIOD = 160;  // milliseconds
+    public static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
     public static final int LOOP_PERIOD = 20;  // milliseconds
-    public static final int SHOOTER_DURATION = 7000;  // milliseconds
+    public static final int SHOOTER_DURATION = 8000;  // milliseconds
     public static final double SORTER_TICKS = 384.5;
 
     public ElapsedTime shooterWarmupTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     public ElapsedTime shooterTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public ElapsedTime autonTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+
     public double targetShooterVelocity = 0;
     public double currentShooterVelocity = 0;
     public boolean shooterVelocityInRange = false;
+    public int shotCount = 0;
+    public int sorterTargetPosition = 0;
 
     @Override
     public void runOpMode() {
@@ -42,6 +46,9 @@ public class EBDecodeAuton extends LinearOpMode {
 
         // Wait for the game to start (driver presses START)
         waitForStart();
+
+        // Start timer counting up toward 30 seconds
+        autonTimer.reset();
 
         auton();
 
@@ -89,7 +96,7 @@ public class EBDecodeAuton extends LinearOpMode {
     public void intake(boolean active, boolean isShooting) {
         if (active) {
             if (isShooting) {
-                lowerIntake.setPower(0);
+                lowerIntake.setPower(INTAKE_POWER);
                 upperIntake.setPower(INTAKE_LOW_POWER);
             } else {
                 lowerIntake.setPower(INTAKE_POWER);
@@ -161,19 +168,21 @@ public class EBDecodeAuton extends LinearOpMode {
         double positionMod = Math.abs(position % SORTER_TICKS);
         if (positionMod < SORTER_TICKS / 8 || positionMod > 7 * SORTER_TICKS / 8) {
             // close enough!
+            sorterTargetPosition = 0;
             return;
         }
 
-        // Calculate the next multiple of SORTER_TICKS in the negative direction from position
-        // Negative direction is clockwise (sorting rather than shooting)
-        double targetPosition = position - SORTER_TICKS;
+        // Calculate the next multiple of SORTER_TICKS
+        double targetPosition = position + SORTER_TICKS;
         targetPosition = (Math.floor(Math.abs(targetPosition) / SORTER_TICKS)
                 * SORTER_TICKS
                 * (targetPosition < 0 ? -1 : 1));
         sorter.setPower(0);
-        sorter.setTargetPosition((int) Math.round(targetPosition));
+        sorterTargetPosition = (int) Math.round(targetPosition);
+        sorter.setTargetPosition(sorterTargetPosition);
         sorter.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        sorter.setPower(SORTER_SORTING_POWER);
+        sorter.setTargetPosition(sorterTargetPosition);
+        sorter.setPower(SORTER_SHOOTING_POWER);
     }
 
     public void warmupShooter(boolean longShot) {
@@ -185,16 +194,20 @@ public class EBDecodeAuton extends LinearOpMode {
         ((DcMotorEx)shooter).setVelocity(targetShooterVelocity);
     }
 
-    public void shootWithStutter(boolean longShot) {
+    public void shoot(boolean longShot) {
+        shoot(longShot, SHOOTER_DURATION);
+    }
+
+    public void shoot(boolean longShot, int shooterDuration) {
         warmupShooter(longShot);
 
         // Make sure sorter is turned off and ready to run
         sorter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         sorter.setPower(0);
 
-        int shotCount = 0;
+        shotCount = 0;
         shooterTimer.reset();
-        while (shooterTimer.milliseconds() < SHOOTER_DURATION && shotCount < 3) {
+        while (shooterTimer.milliseconds() < shooterDuration && shotCount < 3) {
             currentShooterVelocity = ((DcMotorEx)shooter).getVelocity();
 
             // Wait until shooter velocity is very close to target velocity
@@ -228,6 +241,7 @@ public class EBDecodeAuton extends LinearOpMode {
                 sorter.setPower(0);
             }
 
+            updateTelemetry();
             sleep(LOOP_PERIOD);
         }
 
@@ -237,5 +251,11 @@ public class EBDecodeAuton extends LinearOpMode {
         shooterWarmupTimer.reset();
         shooter.setPower(0);
         sorter.setPower(0);
+
+        // Try to move sorter paddle back to the "back" position
+        resetSorter();
+    }
+
+    public void updateTelemetry() {
     }
 }

@@ -23,15 +23,16 @@ public class EBDecodeAutonPedroBlueFar9 extends EBDecodeAutonPedro {
     public static final double START_HEADING = Math.toRadians(90);
     public static final double SHOOT_HEADING = Math.toRadians(111);
     public static final double INTAKE_HEADING = Math.toRadians(180);
-    public static final double END_HEADING = Math.toRadians(180);
+    public static final double END_HEADING = Math.toRadians(111);
 
-    public static final Pose START_POSE = new Pose(48.8, 8.5);
+    public static final Pose START_POSE = new Pose(48, 8.8);
     public static final Pose SHOOT_POSE = new Pose(56, 18);
     public static final Pose PRE_INTAKE1_POSE = new Pose(53, 36);
-    public static final Pose POST_INTAKE1_POSE = new Pose(15.5, 36);
-    public static final Pose PRE_INTAKE2_POSE = new Pose(53, 60);
-    public static final Pose POST_INTAKE2_POSE = new Pose(15.5, 60);
-    public static final Pose END_POSE = new Pose(38, 18);
+    public static final Pose POST_INTAKE1_POSE = new Pose(8.5, 36);
+    public static final Pose PRE_INTAKE2_POSE = new Pose(53, 59);
+    public static final Pose POST_INTAKE2_POSE = new Pose(8.5, 59);
+    public static final Pose POST_INTAKE2_BACKUP_POSE = new Pose(25, 59);
+    public static final Pose END_POSE = new Pose(51, 31);
 
     @Override
     public List<PathChain> getPathList() {
@@ -44,8 +45,9 @@ public class EBDecodeAutonPedroBlueFar9 extends EBDecodeAutonPedro {
                 paths.Path4,  // end intake 1 -> shoot
                 paths.Path5,  // shoot -> start intake 2
                 paths.Path6,  // start intake 2 -> end intake 2
-                paths.Path7,  // end intake 2 -> shoot
-                paths.Path8   // shoot -> LEAVE (near opponent loading zone)
+                paths.Path7,  // end intake 2 -> backup after intake 2
+                paths.Path8,  // backup after intake2 -> shoot
+                paths.Path9   // shoot -> LEAVE (still aligned for long shot)
         );
     }
 
@@ -56,37 +58,37 @@ public class EBDecodeAutonPedroBlueFar9 extends EBDecodeAutonPedro {
             warmupShooter(true);
         } else if (state == 1) {
             // Shooting position: fix heading, shoot, reset sorter
-            correctHeading();
-            shootWithStutter(true);
-            resetSorter();
+            correctHeading(200);
+            shoot(true);
         } else if (state == 2) {
             // Lined up for intake: fix heading, turn on intake
-            correctHeading();
+            correctHeading(100);
             intake(true);
         } else if (state == 3) {
             // Post-intake: start warming up shooter, pause briefly to finish intake
             warmupShooter(true);
-            sleep(250);
+            correctHeading(500);
         } else if (state == 4) {
             // Shooting position: fix heading, shoot, reset sorter
-            correctHeading();
-            shootWithStutter(true);
-            resetSorter();
+            correctHeading(200);
+            shoot(true);
         } else if (state == 5) {
             // Lined up for intake: fix heading, turn on intake
-            correctHeading();
+            correctHeading(100);
             intake(true);
         } else if (state == 6) {
             // Post-intake: start warming up shooter, pause briefly to finish intake
             warmupShooter(true);
-            sleep(250);
+            correctHeading(500);
         } else if (state == 7) {
-            // Shooting position: fix heading, shoot
-            correctHeading();
-            shootWithStutter(true);
+            // Post-intake-backup: do nothing
         } else if (state == 8) {
-            // Final position: near opponent loading zone
-            correctHeading();
+            // Shooting position: fix heading, shoot
+            correctHeading(200);
+            shoot(true);
+        } else if (state == 9) {
+            // Final position: still aligned for long shot
+            correctHeading(500);
         }
     }
 
@@ -99,6 +101,7 @@ public class EBDecodeAutonPedroBlueFar9 extends EBDecodeAutonPedro {
         public PathChain Path6;
         public PathChain Path7;
         public PathChain Path8;
+        public PathChain Path9;
 
         public Paths(Follower follower) {
             Path1 = follower
@@ -139,11 +142,17 @@ public class EBDecodeAutonPedroBlueFar9 extends EBDecodeAutonPedro {
 
             Path7 = follower
                     .pathBuilder()
-                    .addPath(new BezierLine(POST_INTAKE2_POSE, SHOOT_POSE))
-                    .setLinearHeadingInterpolation(INTAKE_HEADING, SHOOT_HEADING)
+                    .addPath(new BezierLine(POST_INTAKE2_POSE, POST_INTAKE2_BACKUP_POSE))
+                    .setLinearHeadingInterpolation(INTAKE_HEADING, INTAKE_HEADING)
                     .build();
 
             Path8 = follower
+                    .pathBuilder()
+                    .addPath(new BezierLine(POST_INTAKE2_BACKUP_POSE, SHOOT_POSE))
+                    .setLinearHeadingInterpolation(INTAKE_HEADING, SHOOT_HEADING)
+                    .build();
+
+            Path9 = follower
                     .pathBuilder()
                     .addPath(new BezierLine(SHOOT_POSE, END_POSE))
                     .setLinearHeadingInterpolation(SHOOT_HEADING, END_HEADING)

@@ -301,7 +301,7 @@ public class EBDecodeTeleop extends LinearOpMode {
             lowerIntake.setPower(-INTAKE_POWER);
             upperIntake.setPower(-INTAKE_POWER);
         } else if (isShooting) {
-            lowerIntake.setPower(0);
+            lowerIntake.setPower(INTAKE_POWER);
             upperIntake.setPower(INTAKE_LOW_POWER);
         } else if (isIntaking) {
             lowerIntake.setPower(INTAKE_POWER);

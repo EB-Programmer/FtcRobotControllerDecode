@@ -16,22 +16,42 @@ public class EBDecodeAutonPedro extends EBDecodeAuton {
     public List<PathChain> pathList;
     public int pathState;
 
+    public final int LEAVE_TIMEOUT = 28000;
+
     @Override
     public void auton() {
         follower = Constants.createFollower(hardwareMap);
         pathList = getPathList();
-        follower.setStartingPose(pathList.get(0).getPath(0).getPose(0));
+        follower.setStartingPose(getPathChain(0).getPath(0).getPose(0));
 
-        while (pathState < pathList.size() || follower.isBusy()) {
+        while (pathState <= pathList.size() || follower.isBusy()) {
             follower.update();
             autonomousPathUpdate();
-
-            telemetry.addData("Path State", pathState);
-            telemetry.addData("X", follower.getPose().getX());
-            telemetry.addData("Y", follower.getPose().getY());
-            telemetry.addData("Heading", follower.getPose().getHeading());
-            telemetry.update();
+            updateTelemetry();
         }
+    }
+
+    @Override
+    public void updateTelemetry() {
+        telemetry.addData("Path State", pathState);
+        telemetry.addData("X", follower.getPose().getX());
+        telemetry.addData("Y", follower.getPose().getY());
+        telemetry.addData("Heading", follower.getPose().getHeading());
+        telemetry.addData("Shot Count", shotCount);
+        telemetry.addData("Follower isBusy", follower.isBusy());
+        telemetry.addData("Sorter Position", sorter.getCurrentPosition());
+        telemetry.addData("Sorter Position Mod", sorter.getCurrentPosition() % SORTER_TICKS);
+        telemetry.addData("Sorter Target Position", sorterTargetPosition);
+        telemetry.addData("Sorter isBusy", sorter.isBusy());
+        telemetry.update();
+    }
+
+    public boolean needToLeave() {
+        return timeUntilLeave() < 0;
+    }
+
+    public double timeUntilLeave() {
+        return LEAVE_TIMEOUT - autonTimer.milliseconds();
     }
 
     public List<PathChain> getPathList() {
@@ -87,32 +107,63 @@ public class EBDecodeAutonPedro extends EBDecodeAuton {
     }
 
     public void autonomousPathUpdate() {
+        // If we are running out of time and we haven't started "leaving" yet, create a new path
+        // to get us from our current pose to our planned final pose. Increment pathState.
+        if (needToLeave() && pathState < pathList.size()) {
+            follower.breakFollowing();
+            pathState = pathList.size() - 1;
+            PathChain lastPathChain = getPathChain(pathState);
+            Pose endPose = lastPathChain.getPose(new PathChain.PathT(0, 1));
+            double endHeading = lastPathChain.getHeadingGoal(new PathChain.PathT(0, 1));
+            PathChain emergencyPathChain = follower
+                    .pathBuilder()
+                    .addPath(new BezierLine(follower.getPose(), endPose))
+                    .setLinearHeadingInterpolation(follower.getHeading(), endHeading)
+                    .build();
+            follower.followPath(emergencyPathChain, 1.0, true);
+            pathState += 1;
+        }
+
         if (!follower.isBusy() && pathState <= pathList.size()) {
+            // Check if OpMode wants to do something special when we've reached this pathState
+            // pathState == 0:    at the initial location
+            // pathState == 1:    at end of Path1
+            // ...
+            // pathState == size: at end of final Path
             pathStateAction(pathState);
+
+            // Start next PathChain segment if necessary
             if (pathState < pathList.size()) {
-                follower.followPath(getPathChain(pathState), 0.5, true);
+                double maxPower = 1.0;
+                PathChain pc = getPathChain(pathState);
+                if (Math.round(pc.getPath(0).getHeadingGoal(0)) % 180 == 0
+                    && Math.round(pc.getPath(0).getHeadingGoal(1)) % 180 == 0) {
+                    // Move slower while picking up artifacts
+                    maxPower = 0.8;
+                }
+                follower.followPath(getPathChain(pathState), maxPower, true);
             }
+
             pathState += 1;
         }
     }
 
-    public void correctHeading() {
-        if (pathState <= 0 || pathState > pathList.size()) {
-            return;
-        }
-        PathChain pathChain = getPathChain(pathState - 1);
-        double goalHeading = pathChain.endPoint().getHeading();
-        Pose currentPose = follower.getPose();
-        // TODO: exit early if current heading is close enough to goal heading?
-        // TODO: OR break loop below when heading is within half a degree or so
-        Pose goalPose = currentPose.setHeading(goalHeading);
-        PathChain correctionPath = follower
-                .pathBuilder()
-                .addPath(new BezierLine(currentPose, goalPose))
-                .setLinearHeadingInterpolation(currentPose.getHeading(), goalHeading)
-                .build();
-        follower.followPath(correctionPath, 0.3, true);
-        while (follower.isBusy()) {
+    @Override
+    public void shoot(boolean longShot) {
+        int duration = (int)Math.min(SHOOTER_DURATION, timeUntilLeave());
+        super.shoot(longShot, duration);
+    }
+
+    public void correctHeading(int timeoutMs) {
+        // Pedro follower should try to "hold" the final position if you call update after
+        // isBusy is no longer true
+        for (int i = 0; i < timeoutMs / LOOP_PERIOD; i++) {
+            // Don't waste time straightening out if we need to be "leaving"
+            if (needToLeave() && pathState < pathList.size()) {
+                break;
+            }
+
+            follower.update();
             sleep(LOOP_PERIOD);
         }
     }

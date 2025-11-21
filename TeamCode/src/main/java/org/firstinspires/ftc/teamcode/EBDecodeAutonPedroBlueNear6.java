@@ -18,8 +18,9 @@ public class EBDecodeAutonPedroBlueNear6 extends EBDecodeAutonPedroBlueNear9 {
                 paths.Path4,  // end intake 1 -> shoot
                 //paths.Path5,  // shoot -> start intake 2
                 //paths.Path6,  // start intake 2 -> end intake 2
-                //paths.Path7,  // end intake 2 -> shoot
-                paths.Path8  // shoot -> LEAVE (near gate)
+                //paths.Path7,  // end intake 2 -> backup after intake 2
+                //paths.Path8,  // backup after intake2 -> shoot
+                paths.Path9   // shoot -> LEAVE (near gate)
         );
     }
 
@@ -30,25 +31,23 @@ public class EBDecodeAutonPedroBlueNear6 extends EBDecodeAutonPedroBlueNear9 {
             warmupShooter(false);
         } else if (state == 1) {
             // Shooting position: fix heading, shoot, reset sorter
-            correctHeading();
-            shootWithStutter(false);
-            resetSorter();
+            correctHeading(200);
+            shoot(false);
         } else if (state == 2) {
             // Lined up for intake: fix heading, turn on intake
-            correctHeading();
+            correctHeading(100);
             intake(true);
         } else if (state == 3) {
             // Post-intake: start warming up shooter, pause briefly to finish intake
             warmupShooter(false);
-            sleep(250);
+            correctHeading(500);
         } else if (state == 4) {
             // Shooting position: fix heading, shoot, reset sorter
-            correctHeading();
-            shootWithStutter(false);
-            resetSorter();
+            correctHeading(200);
+            shoot(false);
         } else if (state == 5) {
             // Final position: ready to open gate
-            correctHeading();
+            correctHeading(500);
         }
     }
 }

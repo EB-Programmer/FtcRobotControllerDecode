@@ -18,8 +18,9 @@ public class EBDecodeAutonPedroBlueFar3 extends EBDecodeAutonPedroBlueNear9 {
                 //paths.Path4,  // end intake 1 -> shoot
                 //paths.Path5,  // shoot -> start intake 2
                 //paths.Path6,  // start intake 2 -> end intake 2
-                //paths.Path7,  // end intake 2 -> shoot
-                paths.Path8  // shoot -> LEAVE (near opponent loading zone)
+                //paths.Path7,  // end intake 2 -> backup after intake 2
+                //paths.Path8,  // backup after intake2 -> shoot
+                paths.Path9   // shoot -> LEAVE (still aligned for long shot)
         );
     }
 
@@ -30,12 +31,11 @@ public class EBDecodeAutonPedroBlueFar3 extends EBDecodeAutonPedroBlueNear9 {
             warmupShooter(true);
         } else if (state == 1) {
             // Shooting position: fix heading, shoot, reset sorter
-            correctHeading();
-            shootWithStutter(true);
-            resetSorter();
+            correctHeading(200);
+            shoot(true);
         } else if (state == 2) {
-            // Final position: near opponent loading zone
-            correctHeading();
+            // Final position: still aligned for long shot
+            correctHeading(500);
         }
     }
 }

@@ -20,16 +20,17 @@ public class EBDecodeAutonPedroBlueNear3 extends EBDecodeAutonPedroBlueNear9 {
                 //paths.Path4,  // end intake 1 -> shoot
                 //paths.Path5,  // shoot -> start intake 2
                 //paths.Path6,  // start intake 2 -> end intake 2
-                //paths.Path7,  // end intake 2 -> shoot
-                //paths.Path8  // shoot -> LEAVE (near gate)
+                //paths.Path7,  // end intake 2 -> backup after intake 2
+                //paths.Path8,  // backup after intake2 -> shoot
+                //paths.Path9   // shoot -> LEAVE (near gate)
                 follower.pathBuilder()  // shoot -> LEAVE (inside triangle)
                         .addPath(
                                 new BezierLine(
-                                        paths.Path1.getPose(new PathChain.PathT(0, 0)),
+                                        paths.Path1.getPose(new PathChain.PathT(0, 1)),
                                         new Pose(54, 120)
                                 )
                         )
-                        .setLinearHeadingInterpolation(Math.toRadians(129), Math.toRadians(129))
+                        .setLinearHeadingInterpolation(SHOOT_HEADING, SHOOT_HEADING)
                         .build()
         );
     }
@@ -41,11 +42,11 @@ public class EBDecodeAutonPedroBlueNear3 extends EBDecodeAutonPedroBlueNear9 {
             warmupShooter(false);
         } else if (state == 1) {
             // Shooting position: fix heading, shoot, reset sorter
-            correctHeading();
-            shootWithStutter(false);
-            resetSorter();
+            correctHeading(200);
+            shoot(false);
         } else if (state == 2) {
             // Final position: do nothing
+            correctHeading(500);
         }
     }
 }
