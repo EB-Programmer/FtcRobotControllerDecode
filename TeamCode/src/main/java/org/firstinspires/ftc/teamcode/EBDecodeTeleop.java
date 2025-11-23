@@ -7,8 +7,12 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+import java.util.List;
 
 /*
  * This OpMode executes a POV Game style Teleop for a direct drive robot
@@ -47,13 +51,13 @@ public class EBDecodeTeleop extends LinearOpMode {
     private static final double DRIVE_HIGH_POWER = 1.0;
     private static final double DRIVE_LOW_POWER = 0.4;
     private static final double SORTER_SORTING_POWER = -0.3;
-    private static final double SORTER_SHOOTING_POWER = 0.6;
+    private static double SORTER_SHOOTING_POWER = 0.3;
     private static double SHOOTER_HIGH_VELOCITY = 2350;
     private static double SHOOTER_LOW_VELOCITY = 1800;
     private static final double INTAKE_POWER = 0.8;
-    private static final double INTAKE_LOW_POWER = 0.1;
-    private static final int STUTTER_PERIOD = 200;  // milliseconds
-    private static final int STUTTER_PAUSE_DURATION = 160;  // milliseconds
+    private static double INTAKE_LOW_POWER = 0.7;
+    private static final int STUTTER_PERIOD = 360;  // milliseconds
+    private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
     private static final int LOOP_PERIOD = 20;  // milliseconds
 
     private ElapsedTime shooterWarmupTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -66,8 +70,6 @@ public class EBDecodeTeleop extends LinearOpMode {
     private double currentShooterVelocity = 0;
     private boolean shooterVelocityInRange = false;
     private int motifID = 0;
-    private double svPcts[] = new double[50];
-    private int svIdx = 0;
 
     @Override
     public void runOpMode() {
@@ -79,7 +81,7 @@ public class EBDecodeTeleop extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            if(longShotMode) {
+            /*if(longShotMode) {
                 SHOOTER_HIGH_VELOCITY = tuneConstant(
                         "Tuner: Shooter High Velocity", SHOOTER_HIGH_VELOCITY,
                         gamepad2.dpadUpWasPressed(), gamepad2.dpadDownWasPressed(),
@@ -89,7 +91,17 @@ public class EBDecodeTeleop extends LinearOpMode {
                         "Tuner: Shooter Low Velocity", SHOOTER_LOW_VELOCITY,
                         gamepad2.dpadUpWasPressed(), gamepad2.dpadDownWasPressed(),
                         25, 3000);
-            }
+            }*/
+
+            SORTER_SHOOTING_POWER = tuneConstant(
+                    "Tuner: Sorter Shooting Power", SORTER_SHOOTING_POWER,
+                    gamepad2.dpadUpWasPressed(), gamepad2.dpadDownWasPressed(),
+                    0.01, 1.0);
+
+            INTAKE_LOW_POWER = tuneConstant(
+                    "Tuner: Intake Shooting Power", INTAKE_LOW_POWER,
+                    gamepad2.dpadRightWasPressed(), gamepad2.dpadLeftWasPressed(),
+                    0.01, 1.0);
 
             drive();
             intake();
@@ -145,11 +157,11 @@ public class EBDecodeTeleop extends LinearOpMode {
         upperIntake.setDirection(DcMotor.Direction.REVERSE);
 
         // Initialize webcam and April Tag processor
-        /*aprilTag = new AprilTagProcessor.Builder().build();
+        aprilTag = new AprilTagProcessor.Builder().build();
         VisionPortal.Builder builder = new VisionPortal.Builder();
         builder.setCamera(hardwareMap.get(WebcamName.class, "webcam"));
         builder.addProcessor(aprilTag);
-        visionPortal = builder.build();*/
+        visionPortal = builder.build();
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData(">", "Robot Ready.  Press START.");
@@ -207,15 +219,16 @@ public class EBDecodeTeleop extends LinearOpMode {
     }
 
     public void identifyMotif() {
-        /*if (motifID == 0) {
+        if (motifID == 0) {
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
             for (AprilTagDetection detection : currentDetections) {
-                if (detection.metadata != null && 21 <= detection.id && detection.id <= 23) {
+                if (21 <= detection.id && detection.id <= 23) {
                     motifID = detection.id;
                     visionPortal.stopStreaming();
+                    break;
                 }
             }
-        }*/
+        }
     }
 
     public void sortColors() {
@@ -315,34 +328,15 @@ public class EBDecodeTeleop extends LinearOpMode {
         }
     }
 
-    public double getShooterVelocityPctMin() {
-        double ret = 100;
-        for (int i = 0; i < 50; i++) {
-            ret = Math.min(ret, svPcts[i]);
-        }
-        return ret;
-    }
-
     public void updateTelemetry() {
         // Send telemetry message with current state
-        //telemetry.addData("Motif ID", motifID);
+        telemetry.addData("Motif ID", motifID);
         telemetry.addData("Fast Drive Mode", fastDriveMode);
         telemetry.addData("Long Shot Mode", longShotMode);
         //telemetry.addData("Shooter Warmup Timer", (int)shooterWarmupTimer.milliseconds());
         //telemetry.addData("Shooter Velocity In Range", shooterVelocityInRange);
         telemetry.addData("Current Shooter Velocity", currentShooterVelocity);
         telemetry.addData("Target Shooter Velocity", targetShooterVelocity);
-
-        /*double shooterVelocityPct = 100;
-        if (targetShooterVelocity > 0) {
-            shooterVelocityPct = 100 * currentShooterVelocity / targetShooterVelocity;
-        }
-        telemetry.addData("Shooter Velocity %", shooterVelocityPct);
-
-        svPcts[svIdx % 50] = shooterVelocityPct;
-        svIdx += 1;
-        double shooterVelocityPctMin = getShooterVelocityPctMin();
-        telemetry.addData("Shooter Velocity % Min", shooterVelocityPctMin);*/
 
         telemetry.update();
     }
