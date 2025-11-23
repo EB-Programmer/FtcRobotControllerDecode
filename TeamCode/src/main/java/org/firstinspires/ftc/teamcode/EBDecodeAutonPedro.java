@@ -155,6 +155,11 @@ public class EBDecodeAutonPedro extends EBDecodeAuton {
     }
 
     public void correctHeading(int timeoutMs) {
+        // TODO: not sure if this is working so just skipping most calls for now
+        if (timeoutMs <= 300) {
+            return;
+        }
+
         // Pedro follower should try to "hold" the final position if you call update after
         // isBusy is no longer true
         for (int i = 0; i < timeoutMs / LOOP_PERIOD; i++) {

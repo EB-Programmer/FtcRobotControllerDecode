@@ -48,8 +48,8 @@ public class EBDecodeTeleop extends LinearOpMode {
     private static final double DRIVE_LOW_POWER = 0.4;
     private static final double SORTER_SORTING_POWER = -0.3;
     private static final double SORTER_SHOOTING_POWER = 0.6;
-    private static double SHOOTER_HIGH_VELOCITY = 2500;//Test value
-    private static double SHOOTER_LOW_VELOCITY = 1250;
+    private static double SHOOTER_HIGH_VELOCITY = 2350;
+    private static double SHOOTER_LOW_VELOCITY = 1800;
     private static final double INTAKE_POWER = 0.8;
     private static final double INTAKE_LOW_POWER = 0.1;
     private static final int STUTTER_PERIOD = 200;  // milliseconds
@@ -80,15 +80,15 @@ public class EBDecodeTeleop extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             if(longShotMode) {
-//                SHOOTER_HIGH_VELOCITY = tuneConstant(
-//                        "Tuner: Shooter High Velocity", SHOOTER_HIGH_VELOCITY,
-//                        gamepad2.dpadUpWasPressed(), gamepad2.dpadDownWasPressed(),
-//                        25, 3000);
+                SHOOTER_HIGH_VELOCITY = tuneConstant(
+                        "Tuner: Shooter High Velocity", SHOOTER_HIGH_VELOCITY,
+                        gamepad2.dpadUpWasPressed(), gamepad2.dpadDownWasPressed(),
+                        25, 3000);
             } else {
-//                SHOOTER_LOW_VELOCITY = tuneConstant(
-//                        "Tuner: Shooter Low Velocity", SHOOTER_LOW_VELOCITY,
-//                        gamepad2.dpadUpWasPressed(), gamepad2.dpadDownWasPressed(),
-//                        25, 3000);
+                SHOOTER_LOW_VELOCITY = tuneConstant(
+                        "Tuner: Shooter Low Velocity", SHOOTER_LOW_VELOCITY,
+                        gamepad2.dpadUpWasPressed(), gamepad2.dpadDownWasPressed(),
+                        25, 3000);
             }
 
             drive();
@@ -136,7 +136,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         shooter = hardwareMap.get(DcMotor.class, "shooter");
         sorter.setDirection(DcMotor.Direction.FORWARD);
         shooter.setDirection(DcMotor.Direction.FORWARD);
-        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         sorter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         lowerIntake = hardwareMap.get(CRServo.class, "lowerIntake");
@@ -236,16 +236,15 @@ public class EBDecodeTeleop extends LinearOpMode {
             longShotMode = false;
         }
 
+        currentShooterVelocity = ((DcMotorEx)shooter).getVelocity();
+
         boolean isShooting = (gamepad2.right_trigger > 0.25);
         boolean isSorting = gamepad2.y;
 
         if (isShooting && !isSorting) {
             // Always power up the shooter motor if we are holding the shoot button
             targetShooterVelocity = (longShotMode ? SHOOTER_HIGH_VELOCITY : SHOOTER_LOW_VELOCITY);
-
-
             ((DcMotorEx)shooter).setVelocity(targetShooterVelocity);
-            currentShooterVelocity = ((DcMotorEx)shooter).getVelocity();
 
             // Wait until shooter velocity is very close to target velocity
             if (0.95 * targetShooterVelocity < currentShooterVelocity
@@ -329,12 +328,12 @@ public class EBDecodeTeleop extends LinearOpMode {
         //telemetry.addData("Motif ID", motifID);
         telemetry.addData("Fast Drive Mode", fastDriveMode);
         telemetry.addData("Long Shot Mode", longShotMode);
-        telemetry.addData("Shooter Warmup Timer", (int)shooterWarmupTimer.milliseconds());
-        telemetry.addData("Shooter Velocity In Range", shooterVelocityInRange);
+        //telemetry.addData("Shooter Warmup Timer", (int)shooterWarmupTimer.milliseconds());
+        //telemetry.addData("Shooter Velocity In Range", shooterVelocityInRange);
         telemetry.addData("Current Shooter Velocity", currentShooterVelocity);
         telemetry.addData("Target Shooter Velocity", targetShooterVelocity);
 
-        double shooterVelocityPct = 100;
+        /*double shooterVelocityPct = 100;
         if (targetShooterVelocity > 0) {
             shooterVelocityPct = 100 * currentShooterVelocity / targetShooterVelocity;
         }
@@ -343,7 +342,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         svPcts[svIdx % 50] = shooterVelocityPct;
         svIdx += 1;
         double shooterVelocityPctMin = getShooterVelocityPctMin();
-        telemetry.addData("Shooter Velocity % Min", shooterVelocityPctMin);
+        telemetry.addData("Shooter Velocity % Min", shooterVelocityPctMin);*/
 
         telemetry.update();
     }
