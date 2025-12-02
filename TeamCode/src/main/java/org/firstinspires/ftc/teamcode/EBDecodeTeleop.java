@@ -51,9 +51,9 @@ public class EBDecodeTeleop extends LinearOpMode {
     private static final double DRIVE_HIGH_POWER = 1.0;
     private static final double DRIVE_LOW_POWER = 0.4;
     private static final double SORTER_SORTING_POWER = -0.3;
-    private static double SORTER_SHOOTING_POWER = 0.3;
-    private static double SHOOTER_HIGH_VELOCITY = 2350;
-    private static double SHOOTER_LOW_VELOCITY = 1800;
+    private static double SORTER_SHOOTING_POWER = 0.25;
+    private static double SHOOTER_HIGH_VELOCITY = 1850;
+    private static double SHOOTER_LOW_VELOCITY = 1450;
     private static final double INTAKE_POWER = 0.8;
     private static double INTAKE_LOW_POWER = 0.7;
     private static final int STUTTER_PERIOD = 360;  // milliseconds
@@ -261,13 +261,13 @@ public class EBDecodeTeleop extends LinearOpMode {
 
             // Wait until shooter velocity is very close to target velocity
             if (0.95 * targetShooterVelocity < currentShooterVelocity
-                && currentShooterVelocity < 1.05 * targetShooterVelocity) {
+                && currentShooterVelocity < 1.00 * targetShooterVelocity) {
                 shooterVelocityInRange = true;
             }
 
             // If shooter velocity later falls out of tolerance, pause the sorter and let the
             // shooter warm back up
-            if (currentShooterVelocity < 0.875 * targetShooterVelocity) {
+            if (currentShooterVelocity < 0.95 * targetShooterVelocity) {
                 if (shooterVelocityInRange) {
                     shooterWarmupTimer.reset();
                 }
