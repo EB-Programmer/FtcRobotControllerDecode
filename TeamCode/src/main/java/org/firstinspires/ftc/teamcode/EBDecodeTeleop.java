@@ -51,11 +51,11 @@ public class EBDecodeTeleop extends LinearOpMode {
     private static final double DRIVE_HIGH_POWER = 1.0;
     private static final double DRIVE_LOW_POWER = 0.4;
     private static final double SORTER_SORTING_POWER = -0.3;
-    private static double SORTER_SHOOTING_POWER = 0.25;
+    private static final double SORTER_SHOOTING_POWER = 0.25;
     private static double SHOOTER_HIGH_VELOCITY = 1850;
     private static double SHOOTER_LOW_VELOCITY = 1450;
     private static final double INTAKE_POWER = 0.8;
-    private static double INTAKE_LOW_POWER = 0.7;
+    private static final double INTAKE_LOW_POWER = 0.7;
     private static final int STUTTER_PERIOD = 360;  // milliseconds
     private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
     private static final int LOOP_PERIOD = 20;  // milliseconds
@@ -91,7 +91,7 @@ public class EBDecodeTeleop extends LinearOpMode {
                         "Tuner: Shooter Low Velocity", SHOOTER_LOW_VELOCITY,
                         gamepad2.dpadUpWasPressed(), gamepad2.dpadDownWasPressed(),
                         25, 3000);
-            }*/
+            }
 
             SORTER_SHOOTING_POWER = tuneConstant(
                     "Tuner: Sorter Shooting Power", SORTER_SHOOTING_POWER,
@@ -102,7 +102,7 @@ public class EBDecodeTeleop extends LinearOpMode {
                     "Tuner: Intake Shooting Power", INTAKE_LOW_POWER,
                     gamepad2.dpadRightWasPressed(), gamepad2.dpadLeftWasPressed(),
                     0.01, 1.0);
-
+            */
             drive();
             intake();
             shootWithStutter();
