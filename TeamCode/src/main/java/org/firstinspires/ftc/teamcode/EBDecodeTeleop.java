@@ -71,6 +71,8 @@ public class EBDecodeTeleop extends LinearOpMode {
     private boolean shooterVelocityInRange = false;
     private int motifID = 0;
 
+    private double highestVelocity = 0;
+
     @Override
     public void runOpMode() {
         // Initialize motors and servos
@@ -148,7 +150,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         shooter = hardwareMap.get(DcMotor.class, "shooter");
         sorter.setDirection(DcMotor.Direction.FORWARD);
         shooter.setDirection(DcMotor.Direction.FORWARD);
-        //shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         sorter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         lowerIntake = hardwareMap.get(CRServo.class, "lowerIntake");
@@ -259,6 +261,11 @@ public class EBDecodeTeleop extends LinearOpMode {
             targetShooterVelocity = (longShotMode ? SHOOTER_HIGH_VELOCITY : SHOOTER_LOW_VELOCITY);
             ((DcMotorEx)shooter).setVelocity(targetShooterVelocity);
 
+            //Test
+            if(currentShooterVelocity>highestVelocity){
+                highestVelocity = currentShooterVelocity;
+            }
+
             // Wait until shooter velocity is very close to target velocity
             if (0.95 * targetShooterVelocity < currentShooterVelocity
                 && currentShooterVelocity < 1.00 * targetShooterVelocity) {
@@ -272,6 +279,8 @@ public class EBDecodeTeleop extends LinearOpMode {
                     shooterWarmupTimer.reset();
                 }
                 shooterVelocityInRange = false;
+                //Test
+                highestVelocity = 0;
             }
 
             // Power up the sorter motor only after shooter reaches target velocity
@@ -291,6 +300,8 @@ public class EBDecodeTeleop extends LinearOpMode {
             shooterVelocityInRange = false;
             shooterWarmupTimer.reset();
             shooter.setPower(0);
+            //Test
+            highestVelocity = 0;
         }
 
         // Only force sorter off if we are not shooting and also not sorting
@@ -333,11 +344,14 @@ public class EBDecodeTeleop extends LinearOpMode {
         telemetry.addData("Motif ID", motifID);
         telemetry.addData("Fast Drive Mode", fastDriveMode);
         telemetry.addData("Long Shot Mode", longShotMode);
-        //telemetry.addData("Shooter Warmup Timer", (int)shooterWarmupTimer.milliseconds());
-        //telemetry.addData("Shooter Velocity In Range", shooterVelocityInRange);
         telemetry.addData("Current Shooter Velocity", currentShooterVelocity);
         telemetry.addData("Target Shooter Velocity", targetShooterVelocity);
 
+        telemetry.addData("Test Values", "");
+        telemetry.addData("Shooter Warmup Timer", (int)shooterWarmupTimer.milliseconds());
+        telemetry.addData("Shooter Velocity In Range", shooterVelocityInRange);
+        telemetry.addData("Highest Velocity Seen", highestVelocity);
+        telemetry.addData("Highest Velocity Seen", ((DcMotorEx)shooter).getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));
         telemetry.update();
     }
 }

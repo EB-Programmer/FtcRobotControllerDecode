@@ -19,9 +19,9 @@ public class EBDecodeAuton extends LinearOpMode {
     public CRServo upperIntake = null;
 
     public static double SORTER_SORTING_POWER = -0.3;
-    public static double SORTER_SHOOTING_POWER = 0.6;
-    private static double SHOOTER_HIGH_VELOCITY = 1650;
-    private static double SHOOTER_LOW_VELOCITY = 1250;
+    public static double SORTER_SHOOTING_POWER = 0.25;
+    private static final double SHOOTER_HIGH_VELOCITY = 1650;
+    private static final double SHOOTER_LOW_VELOCITY = 1250;
     public static double INTAKE_POWER = 0.8;
     public static double INTAKE_LOW_POWER = 0.7;
     public static final int STUTTER_PERIOD = 360;  // milliseconds
