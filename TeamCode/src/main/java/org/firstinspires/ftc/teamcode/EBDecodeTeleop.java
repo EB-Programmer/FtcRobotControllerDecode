@@ -54,7 +54,7 @@ public class EBDecodeTeleop extends LinearOpMode {
     private static final double SORTER_SHOOTING_POWER = 0.25;
     private static double SHOOTER_HIGH_VELOCITY = 1850;
     private static double SHOOTER_LOW_VELOCITY = 1450;
-    private static final double INTAKE_POWER = 0.8;
+    private static final double INTAKE_POWER = 0.9;
     private static final double INTAKE_LOW_POWER = 0.7;
     private static final int STUTTER_PERIOD = 360;  // milliseconds
     private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
@@ -351,7 +351,6 @@ public class EBDecodeTeleop extends LinearOpMode {
         telemetry.addData("Shooter Warmup Timer", (int)shooterWarmupTimer.milliseconds());
         telemetry.addData("Shooter Velocity In Range", shooterVelocityInRange);
         telemetry.addData("Highest Velocity Seen", highestVelocity);
-        telemetry.addData("Highest Velocity Seen", ((DcMotorEx)shooter).getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));
         telemetry.update();
     }
 }

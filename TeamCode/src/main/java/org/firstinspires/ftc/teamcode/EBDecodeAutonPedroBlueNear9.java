@@ -22,7 +22,9 @@ import java.util.List;
 @Autonomous(group="EBDecode")
 public class EBDecodeAutonPedroBlueNear9 extends EBDecodeAutonPedro {
     public static final double START_HEADING = Math.toRadians(90);
-    public static final double SHOOT_HEADING = Math.toRadians(130);
+    public static final double SHOOT_FIRST_HEADING = Math.toRadians(125);
+    public static final double SHOOT_SECOND_HEADING = Math.toRadians(135);
+    public static final double SHOOT_THIRD_HEADING = Math.toRadians(140);//TODO: Implement
     public static final double INTAKE_HEADING = Math.toRadians(180);
     public static final double END_HEADING = Math.toRadians(0);
 
@@ -108,13 +110,13 @@ public class EBDecodeAutonPedroBlueNear9 extends EBDecodeAutonPedro {
             Path1 = follower
                     .pathBuilder()
                     .addPath(new BezierLine(START_POSE, SHOOT_POSE))
-                    .setLinearHeadingInterpolation(START_HEADING, SHOOT_HEADING)
+                    .setLinearHeadingInterpolation(START_HEADING, SHOOT_FIRST_HEADING)
                     .build();
 
             Path2 = follower
                     .pathBuilder()
                     .addPath(new BezierLine(SHOOT_POSE, PRE_INTAKE1_POSE))
-                    .setLinearHeadingInterpolation(SHOOT_HEADING, INTAKE_HEADING)
+                    .setLinearHeadingInterpolation(SHOOT_FIRST_HEADING, INTAKE_HEADING)
                     .build();
 
             Path3 = follower
@@ -126,13 +128,13 @@ public class EBDecodeAutonPedroBlueNear9 extends EBDecodeAutonPedro {
             Path4 = follower
                     .pathBuilder()
                     .addPath(new BezierLine(POST_INTAKE1_POSE, SHOOT_POSE))
-                    .setLinearHeadingInterpolation(INTAKE_HEADING, SHOOT_HEADING)
+                    .setLinearHeadingInterpolation(INTAKE_HEADING, SHOOT_SECOND_HEADING)
                     .build();
 
             Path5 = follower
                     .pathBuilder()
                     .addPath(new BezierLine(SHOOT_POSE, PRE_INTAKE2_POSE))
-                    .setLinearHeadingInterpolation(SHOOT_HEADING, INTAKE_HEADING)
+                    .setLinearHeadingInterpolation(SHOOT_SECOND_HEADING, INTAKE_HEADING)
                     .build();
 
             Path6 = follower
@@ -150,13 +152,13 @@ public class EBDecodeAutonPedroBlueNear9 extends EBDecodeAutonPedro {
             Path8 = follower
                     .pathBuilder()
                     .addPath(new BezierLine(POST_INTAKE2_BACKUP_POSE, SHOOT_POSE))
-                    .setLinearHeadingInterpolation(INTAKE_HEADING, SHOOT_HEADING)
+                    .setLinearHeadingInterpolation(INTAKE_HEADING, SHOOT_SECOND_HEADING)
                     .build();
 
             Path9 = follower
                     .pathBuilder()
                     .addPath(new BezierLine(SHOOT_POSE, END_POSE))
-                    .setLinearHeadingInterpolation(SHOOT_HEADING, END_HEADING)
+                    .setLinearHeadingInterpolation(SHOOT_SECOND_HEADING, END_HEADING)
                     .build();
         }
     }

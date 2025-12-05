@@ -30,7 +30,7 @@ public class EBDecodeAutonPedroBlueNear0 extends EBDecodeAutonPedroBlueNear9 {
                                         new Pose(54, 120)
                                 )
                         )
-                        .setLinearHeadingInterpolation(SHOOT_HEADING, SHOOT_HEADING)
+                        .setLinearHeadingInterpolation(SHOOT_FIRST_HEADING, SHOOT_FIRST_HEADING)
                         .build()
         );
     }
