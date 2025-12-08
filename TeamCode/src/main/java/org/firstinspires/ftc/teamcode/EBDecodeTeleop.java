@@ -50,13 +50,13 @@ public class EBDecodeTeleop extends LinearOpMode {
 
     private static final double DRIVE_HIGH_POWER = 1.0;
     private static final double DRIVE_LOW_POWER = 0.4;
-    private static final double SORTER_SORTING_POWER = -0.3;
-    private static final double SORTER_SHOOTING_POWER = 0.25;
-    private static double SHOOTER_HIGH_VELOCITY = 1850;
-    private static double SHOOTER_LOW_VELOCITY = 1450;
+    private static final double SORTER_SORTING_POWER = 0.15;
+    private static final double SORTER_SHOOTING_POWER = -0.25;
+    private static double SHOOTER_HIGH_VELOCITY = 1450;
+    private static double SHOOTER_LOW_VELOCITY = 625;
     private static final double INTAKE_POWER = 0.9;
     private static final double INTAKE_LOW_POWER = 0.7;
-    private static final int STUTTER_PERIOD = 360;  // milliseconds
+    private static final int STUTTER_PERIOD = 0;  // milliseconds
     private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
     private static final int LOOP_PERIOD = 20;  // milliseconds
 
@@ -285,7 +285,7 @@ public class EBDecodeTeleop extends LinearOpMode {
 
             // Power up the sorter motor only after shooter reaches target velocity
             // OR button has been held for 3+ seconds
-            if (shooterVelocityInRange || shooterWarmupTimer.milliseconds() > 3000) {
+            if (shooterVelocityInRange || shooterWarmupTimer.milliseconds() > 5000) {
                 int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
                 if (time < STUTTER_PAUSE_DURATION) {
                     sorter.setPower(0);
