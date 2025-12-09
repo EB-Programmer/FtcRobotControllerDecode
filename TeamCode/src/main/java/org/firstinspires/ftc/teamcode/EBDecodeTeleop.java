@@ -50,14 +50,14 @@ public class EBDecodeTeleop extends LinearOpMode {
 
     private static final double DRIVE_HIGH_POWER = 1.0;
     private static final double DRIVE_LOW_POWER = 0.4;
-    private static final double SORTER_SORTING_POWER = -0.3;
-    private static final double SORTER_SHOOTING_POWER = 0.25;
-    private static double SHOOTER_HIGH_VELOCITY = 1850;
-    private static double SHOOTER_LOW_VELOCITY = 1450;
+    private static final double SORTER_SORTING_POWER = 0.3;
+    private static final double SORTER_SHOOTING_POWER = -0.25;
+    private static double SHOOTER_HIGH_VELOCITY = 1500;
+    private static double SHOOTER_LOW_VELOCITY = 1150;
     private static final double INTAKE_POWER = 0.9;
     private static final double INTAKE_LOW_POWER = 0.7;
     private static final int STUTTER_PERIOD = 360;  // milliseconds
-    private static final int STUTTER_PAUSE_DURATION = 120;  // milliseconds
+    private static final int STUTTER_PAUSE_DURATION = 60;  // milliseconds
     private static final int LOOP_PERIOD = 20;  // milliseconds
 
     private ElapsedTime shooterWarmupTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -70,6 +70,7 @@ public class EBDecodeTeleop extends LinearOpMode {
     private double currentShooterVelocity = 0;
     private boolean shooterVelocityInRange = false;
     private int motifID = 0;
+    private double minVelocityPct = 0.85;
 
     private double highestVelocity = 0;
 
@@ -247,8 +248,10 @@ public class EBDecodeTeleop extends LinearOpMode {
         // Check if LongShotMode is being toggled on or off
         if (gamepad2.a) {
             longShotMode = true;
+            minVelocityPct = .95;
         } else if (gamepad2.b) {
             longShotMode = false;
+            minVelocityPct = .85;
         }
 
         currentShooterVelocity = ((DcMotorEx)shooter).getVelocity();
@@ -274,7 +277,7 @@ public class EBDecodeTeleop extends LinearOpMode {
 
             // If shooter velocity later falls out of tolerance, pause the sorter and let the
             // shooter warm back up
-            if (currentShooterVelocity < 0.95 * targetShooterVelocity) {
+            if (currentShooterVelocity < minVelocityPct * targetShooterVelocity) {
                 if (shooterVelocityInRange) {
                     shooterWarmupTimer.reset();
                 }
@@ -285,7 +288,7 @@ public class EBDecodeTeleop extends LinearOpMode {
 
             // Power up the sorter motor only after shooter reaches target velocity
             // OR button has been held for 3+ seconds
-            if (shooterVelocityInRange || shooterWarmupTimer.milliseconds() > 3000) {
+            if (shooterVelocityInRange) { //|| shooterWarmupTimer.milliseconds() > 5000) {
                 int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
                 if (time < STUTTER_PAUSE_DURATION) {
                     sorter.setPower(0);
