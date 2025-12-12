@@ -46,6 +46,7 @@ public class EBDecodeAutonPedro extends EBDecodeAuton {
         telemetry.addData("Sorter Target Position", sorterTargetPosition);
         telemetry.addData("Sorter isBusy", sorter.isBusy());
         telemetry.addData("Shooter Velocity", ((DcMotorEx)shooter).getVelocity());
+        telemetry.addData("Shooter Velocity in Range", shooterVelocityInRange);
         telemetry.update();
     }
 
@@ -142,10 +143,12 @@ public class EBDecodeAutonPedro extends EBDecodeAuton {
                 if (Math.round(pc.getPath(0).getHeadingGoal(0)) % 180 == 0
                     && Math.round(pc.getPath(0).getHeadingGoal(1)) % 180 == 0) {
                     // Move slower while picking up artifacts
-                    maxPower = 0.8;
-                } else if (pathState == 0 || pathState == 3 || pathState == 7) {
+                    maxPower = 0.85;
+                } else if (pathState == 0) {
+                    maxPower = 0.75;
+                } else if (pathState == 3 || pathState == 7) {
                     // Move slower to line up shots
-                    maxPower = 0.7;
+                    maxPower = 0.85;
                 }
                 follower.followPath(getPathChain(pathState), maxPower, true);
             }

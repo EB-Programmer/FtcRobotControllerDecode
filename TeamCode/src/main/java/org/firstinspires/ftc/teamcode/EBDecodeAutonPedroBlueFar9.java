@@ -21,9 +21,9 @@ import java.util.List;
 @Autonomous(group="EBDecode")
 public class EBDecodeAutonPedroBlueFar9 extends EBDecodeAutonPedro {
     public static final double START_HEADING = Math.toRadians(90);
-    public static final double SHOOT_HEADING = Math.toRadians(111);
+    public static final double SHOOT_HEADING = Math.toRadians(110);
     public static final double INTAKE_HEADING = Math.toRadians(180);
-    public static final double END_HEADING = Math.toRadians(111);
+    public static final double END_HEADING = Math.toRadians(110);
 
     public static final Pose START_POSE = new Pose(48, 8.8);
     public static final Pose SHOOT_POSE = new Pose(56.5, 17.5);

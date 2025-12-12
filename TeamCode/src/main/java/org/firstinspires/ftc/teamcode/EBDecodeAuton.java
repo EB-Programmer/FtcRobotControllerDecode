@@ -29,7 +29,7 @@ public class EBDecodeAuton extends LinearOpMode {
     public static final int STUTTER_PERIOD = 360;  // milliseconds
     public static final int STUTTER_PAUSE_DURATION = 60;  // milliseconds
     public static final int LOOP_PERIOD = 20;  // milliseconds
-    public static final int SHOOTER_DURATION = 4000;  // milliseconds
+    public static final int SHOOTER_DURATION = 3500;  // milliseconds
     public static final int SHOOTER_SHORT_WARMUP_DURATION = 3000;  // milliseconds
     public static final int SHOOTER_LONG_WARMUP_DURATION = 9000;  // milliseconds
     public static final double SORTER_TICKS = 384.5;
@@ -217,14 +217,14 @@ public class EBDecodeAuton extends LinearOpMode {
 
             // Wait until shooter velocity is very close to target velocity
             if (0.95 * targetShooterVelocity < currentShooterVelocity
-                    && currentShooterVelocity < 1.03 * targetShooterVelocity) {
+                    && currentShooterVelocity < 1.2 * targetShooterVelocity) {
                 shooterVelocityInRange = true;
             }
 
             // If shooter velocity later falls out of tolerance, pause the sorter and let the
             // shooter warm back up
             if ((currentShooterVelocity < 0.95 * targetShooterVelocity)
-                || (currentShooterVelocity > 1.05 * targetShooterVelocity)) {
+                || (currentShooterVelocity > 1.2 * targetShooterVelocity)) {
                 if (shooterVelocityInRange) {
                     if (currentShooterVelocity < targetShooterVelocity) {
                         // If velocity goes low, give it full time to warm back up
