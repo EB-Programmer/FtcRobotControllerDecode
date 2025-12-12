@@ -26,7 +26,7 @@ public class EBDecodeAutonPedroBlueFar9 extends EBDecodeAutonPedro {
     public static final double END_HEADING = Math.toRadians(111);
 
     public static final Pose START_POSE = new Pose(48, 8.8);
-    public static final Pose SHOOT_POSE = new Pose(56, 18);
+    public static final Pose SHOOT_POSE = new Pose(56.5, 17.5);
     public static final Pose PRE_INTAKE1_POSE = new Pose(53, 36);
     public static final Pose POST_INTAKE1_POSE = new Pose(8.5, 36);
     public static final Pose PRE_INTAKE2_POSE = new Pose(53, 59);

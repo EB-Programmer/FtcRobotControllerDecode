@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Autonomous(group="EBDecode")
-public class EBDecodeAutonPedroBlueFar3 extends EBDecodeAutonPedroBlueNear9 {
+public class EBDecodeAutonPedroBlueFar3 extends EBDecodeAutonPedroBlueFar9 {
     @Override
     public List<PathChain> getPathList() {
         Paths paths = new Paths(follower);

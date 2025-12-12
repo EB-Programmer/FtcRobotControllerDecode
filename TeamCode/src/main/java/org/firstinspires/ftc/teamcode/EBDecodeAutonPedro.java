@@ -5,6 +5,8 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.ArrayList;
@@ -43,6 +45,7 @@ public class EBDecodeAutonPedro extends EBDecodeAuton {
         telemetry.addData("Sorter Position Mod", sorter.getCurrentPosition() % SORTER_TICKS);
         telemetry.addData("Sorter Target Position", sorterTargetPosition);
         telemetry.addData("Sorter isBusy", sorter.isBusy());
+        telemetry.addData("Shooter Velocity", ((DcMotorEx)shooter).getVelocity());
         telemetry.update();
     }
 
@@ -140,6 +143,9 @@ public class EBDecodeAutonPedro extends EBDecodeAuton {
                     && Math.round(pc.getPath(0).getHeadingGoal(1)) % 180 == 0) {
                     // Move slower while picking up artifacts
                     maxPower = 0.8;
+                } else if (pathState == 0 || pathState == 3 || pathState == 7) {
+                    // Move slower to line up shots
+                    maxPower = 0.7;
                 }
                 follower.followPath(getPathChain(pathState), maxPower, true);
             }

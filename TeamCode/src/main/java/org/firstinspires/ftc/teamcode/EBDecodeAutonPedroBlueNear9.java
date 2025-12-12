@@ -22,9 +22,9 @@ import java.util.List;
 @Autonomous(group="EBDecode")
 public class EBDecodeAutonPedroBlueNear9 extends EBDecodeAutonPedro {
     public static final double START_HEADING = Math.toRadians(90);
-    public static final double SHOOT_FIRST_HEADING = Math.toRadians(125);
+    public static final double SHOOT_FIRST_HEADING = Math.toRadians(130);
     public static final double SHOOT_SECOND_HEADING = Math.toRadians(135);
-    public static final double SHOOT_THIRD_HEADING = Math.toRadians(140);//TODO: Implement
+    public static final double SHOOT_THIRD_HEADING = Math.toRadians(135);
     public static final double INTAKE_HEADING = Math.toRadians(180);
     public static final double END_HEADING = Math.toRadians(0);
 
@@ -152,13 +152,13 @@ public class EBDecodeAutonPedroBlueNear9 extends EBDecodeAutonPedro {
             Path8 = follower
                     .pathBuilder()
                     .addPath(new BezierLine(POST_INTAKE2_BACKUP_POSE, SHOOT_POSE))
-                    .setLinearHeadingInterpolation(INTAKE_HEADING, SHOOT_SECOND_HEADING)
+                    .setLinearHeadingInterpolation(INTAKE_HEADING, SHOOT_THIRD_HEADING)
                     .build();
 
             Path9 = follower
                     .pathBuilder()
                     .addPath(new BezierLine(SHOOT_POSE, END_POSE))
-                    .setLinearHeadingInterpolation(SHOOT_SECOND_HEADING, END_HEADING)
+                    .setLinearHeadingInterpolation(SHOOT_THIRD_HEADING, END_HEADING)
                     .build();
         }
     }

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import static java.lang.Math.max;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -20,14 +22,16 @@ public class EBDecodeAuton extends LinearOpMode {
 
     public static double SORTER_SORTING_POWER = -0.3;
     public static double SORTER_SHOOTING_POWER = -0.25;
-    private static final double SHOOTER_HIGH_VELOCITY = 1500;
+    private static final double SHOOTER_HIGH_VELOCITY = 1465;
     private static final double SHOOTER_LOW_VELOCITY = 1150;
     public static double INTAKE_POWER = 0.9;
     public static double INTAKE_LOW_POWER = 0.7;
     public static final int STUTTER_PERIOD = 360;  // milliseconds
     public static final int STUTTER_PAUSE_DURATION = 60;  // milliseconds
     public static final int LOOP_PERIOD = 20;  // milliseconds
-    public static final int SHOOTER_DURATION = 8000;  // milliseconds
+    public static final int SHOOTER_DURATION = 4000;  // milliseconds
+    public static final int SHOOTER_SHORT_WARMUP_DURATION = 3000;  // milliseconds
+    public static final int SHOOTER_LONG_WARMUP_DURATION = 9000;  // milliseconds
     public static final double SORTER_TICKS = 384.5;
 
     public ElapsedTime shooterWarmupTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -166,7 +170,7 @@ public class EBDecodeAuton extends LinearOpMode {
     public void resetSorter() {
         double position = sorter.getCurrentPosition();
         double positionMod = Math.abs(position % SORTER_TICKS);
-        if (positionMod < SORTER_TICKS / 8 || positionMod > 7 * SORTER_TICKS / 8) {
+        if ((positionMod < SORTER_TICKS / 8) || (positionMod > 7 * SORTER_TICKS / 8)) {
             // close enough!
             sorterTargetPosition = 0;
             return;
@@ -174,7 +178,7 @@ public class EBDecodeAuton extends LinearOpMode {
 
         // Calculate the next multiple of SORTER_TICKS
         double targetPosition = position + SORTER_TICKS;
-        targetPosition = (Math.floor(Math.abs(targetPosition) / SORTER_TICKS)
+        targetPosition = ((Math.floor(Math.abs(targetPosition) / SORTER_TICKS) + 1)
                 * SORTER_TICKS
                 * (targetPosition < 0 ? -1 : 1));
         sorter.setPower(0);
@@ -199,36 +203,43 @@ public class EBDecodeAuton extends LinearOpMode {
     }
 
     public void shoot(boolean longShot, int shooterDuration) {
+        int warmupDuration = (longShot ? SHOOTER_LONG_WARMUP_DURATION : SHOOTER_SHORT_WARMUP_DURATION);
         warmupShooter(longShot);
 
         // Make sure sorter is turned off and ready to run
         sorter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         sorter.setPower(0);
 
-        shotCount = 0;
         shooterTimer.reset();
-        while (shooterTimer.milliseconds() < shooterDuration && shotCount < 3) {
+        int shooterTime = 0;
+        while (shooterTime + shooterTimer.milliseconds() < shooterDuration) {
             currentShooterVelocity = ((DcMotorEx)shooter).getVelocity();
 
             // Wait until shooter velocity is very close to target velocity
             if (0.95 * targetShooterVelocity < currentShooterVelocity
-                    && currentShooterVelocity < 1.00 * targetShooterVelocity) {
+                    && currentShooterVelocity < 1.03 * targetShooterVelocity) {
                 shooterVelocityInRange = true;
             }
 
             // If shooter velocity later falls out of tolerance, pause the sorter and let the
             // shooter warm back up
-            if (currentShooterVelocity < 0.95 * targetShooterVelocity) {
+            if ((currentShooterVelocity < 0.95 * targetShooterVelocity)
+                || (currentShooterVelocity > 1.05 * targetShooterVelocity)) {
                 if (shooterVelocityInRange) {
-                    shotCount++;
-                    shooterWarmupTimer.reset();
+                    if (currentShooterVelocity < targetShooterVelocity) {
+                        // If velocity goes low, give it full time to warm back up
+                        shooterWarmupTimer.reset();
+                    } else {
+                        // If velocity goes high, give it a second to cool back down
+                        warmupDuration = max(warmupDuration, (int)shooterWarmupTimer.milliseconds() + 1000);
+                    }
                 }
                 shooterVelocityInRange = false;
             }
 
             // Power up the sorter motor only after shooter reaches target velocity
-            // OR button has been held for 3+ seconds
-            if (shooterVelocityInRange || shooterWarmupTimer.milliseconds() > 3000) {
+            // OR warmup has exceeded maximum warmup time
+            if (shooterVelocityInRange || shooterWarmupTimer.milliseconds() > warmupDuration) {
                 intake(true, true);
                 int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
                 if (time < STUTTER_PAUSE_DURATION) {
@@ -237,6 +248,10 @@ public class EBDecodeAuton extends LinearOpMode {
                     sorter.setPower(SORTER_SHOOTING_POWER);
                 }
             } else {
+                if (shooterTimer.milliseconds() > 250) {
+                    shooterTime += (int)shooterTimer.milliseconds();
+                }
+                shooterTimer.reset();  // Only count shooting time toward shooter duration
                 intake(false);
                 sorter.setPower(0);
             }
