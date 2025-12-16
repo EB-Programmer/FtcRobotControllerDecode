@@ -52,8 +52,8 @@ public class EBDecodeTeleop extends LinearOpMode {
     private static final double DRIVE_LOW_POWER = 0.4;
     private static final double SORTER_SORTING_POWER = 0.3;
     private static final double SORTER_SHOOTING_POWER = -0.25;
-    private static double SHOOTER_HIGH_VELOCITY = 1500;
-    private static double SHOOTER_LOW_VELOCITY = 1150;
+    private static double SHOOTER_HIGH_VELOCITY = 1550;
+    private static double SHOOTER_LOW_VELOCITY = 1200;
     private static final double INTAKE_POWER = 0.9;
     private static final double INTAKE_LOW_POWER = 0.7;
     private static final int STUTTER_PERIOD = 360;  // milliseconds

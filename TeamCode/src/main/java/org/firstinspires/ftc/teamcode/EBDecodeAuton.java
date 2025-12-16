@@ -22,8 +22,8 @@ public class EBDecodeAuton extends LinearOpMode {
 
     public static double SORTER_SORTING_POWER = -0.3;
     public static double SORTER_SHOOTING_POWER = -0.25;
-    private static final double SHOOTER_HIGH_VELOCITY = 1465;
-    private static final double SHOOTER_LOW_VELOCITY = 1150;
+    private static final double SHOOTER_HIGH_VELOCITY = 1550;
+    private static final double SHOOTER_LOW_VELOCITY = 1200;
     public static double INTAKE_POWER = 0.9;
     public static double INTAKE_LOW_POWER = 0.7;
     public static final int STUTTER_PERIOD = 360;  // milliseconds
