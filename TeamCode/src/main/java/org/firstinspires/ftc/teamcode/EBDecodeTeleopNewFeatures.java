@@ -15,6 +15,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
+import java.util.Locale;
 
 /*
  * This OpMode tests new robot features and hardware
@@ -44,7 +45,7 @@ public class EBDecodeTeleopNewFeatures extends LinearOpMode {
     private static final int LOOP_PERIOD = 20;  // milliseconds
     private static final double[] INDICATOR_COLOR_VALUES = {0.0, 0.277, 0.333, 0.388, 0.444, 0.5, 0.555, 0.611, 0.666, 0.722, 1.0};
 
-    private int aprilTagID = 0;
+    private AprilTagDetection aprilTagDetection = null;
     private int indicatorColorIdx = 0;
     private float colorSensorGain = 2.0f;
     private NormalizedRGBA colorData1 = null;
@@ -126,11 +127,11 @@ public class EBDecodeTeleopNewFeatures extends LinearOpMode {
             visionPortal.setProcessorEnabled(aprilTagProcessor, !visionPortal.getProcessorEnabled(aprilTagProcessor));
         }
 
-        aprilTagID = 0;
+        aprilTagDetection = null;
         List<AprilTagDetection> currentDetections = aprilTagProcessor.getDetections();
         for (AprilTagDetection detection : currentDetections) {
             if (20 <= detection.id && detection.id <= 24) {
-                aprilTagID = detection.id;
+                aprilTagDetection = detection;
                 break;
             }
         }
@@ -145,12 +146,17 @@ public class EBDecodeTeleopNewFeatures extends LinearOpMode {
         telemetry.addLine();
 
         String aprilTagDesc = "None";
-        if (aprilTagID == 20) {
-            aprilTagDesc = "BLUE GOAL";
-        } else if (aprilTagID == 24) {
-            aprilTagDesc = "RED GOAL";
-        } else if (aprilTagID != 0) {
-            aprilTagDesc = "OBELISK";
+        if (aprilTagDetection != null) {
+            if (aprilTagDetection.id == 20) {
+                aprilTagDesc = "BLUE GOAL";
+            } else if (aprilTagDetection.id == 24) {
+                aprilTagDesc = "RED GOAL";
+            } else {
+                aprilTagDesc = "OBELISK";
+            }
+            aprilTagDesc += String.format(
+                    Locale.US, ": %.1f degrees, %.1f feet away",
+                    aprilTagDetection.ftcPose.bearing, aprilTagDetection.ftcPose.range / 12);
         }
 
         telemetry.addData("April Tag Processor Running", visionPortal.getProcessorEnabled(aprilTagProcessor));
