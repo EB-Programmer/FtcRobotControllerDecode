@@ -22,6 +22,7 @@ public class EBDecodeAutonPedro extends EBDecodeAuton {
 
     @Override
     public void auton() {
+        pathState = 0;
         follower = Constants.createFollower(hardwareMap);
         pathList = getPathList();
         follower.setStartingPose(getPathChain(0).getPath(0).getPose(0));

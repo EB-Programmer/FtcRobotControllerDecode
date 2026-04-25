@@ -35,7 +35,7 @@ import java.util.Locale;
  *
  */
 
-@TeleOp(group="EBDecode")
+@TeleOp(group="EBDecodeTest")
 public class EBDecodeTeleopNewFeatures extends LinearOpMode {
     private AprilTagProcessor aprilTagProcessor = null;
     private VisionPortal visionPortal = null;
@@ -65,6 +65,7 @@ public class EBDecodeTeleopNewFeatures extends LinearOpMode {
 
             updateAprilTag();
             updateIndicator();
+            updateColorSensor();
             updateTelemetry();
 
             sleep(LOOP_PERIOD);

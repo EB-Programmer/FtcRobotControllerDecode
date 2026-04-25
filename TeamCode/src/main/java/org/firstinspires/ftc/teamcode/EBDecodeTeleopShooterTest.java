@@ -31,7 +31,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
  *
  */
 
-@TeleOp(group="EBDecode")
+@TeleOp(group="EBDecodeTest")
 public class EBDecodeTeleopShooterTest extends LinearOpMode {
     private DcMotor leftFrontDrive   = null;
     private DcMotor rightFrontDrive = null;
