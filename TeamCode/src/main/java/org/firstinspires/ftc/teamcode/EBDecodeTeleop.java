@@ -7,10 +7,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+//import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+//import org.firstinspires.ftc.vision.VisionPortal;
+//import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+//import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
@@ -45,16 +45,16 @@ public class EBDecodeTeleop extends LinearOpMode {
     private DcMotor shooter = null;
     private CRServo lowerIntake = null;
     private CRServo upperIntake = null;
-    private AprilTagProcessor aprilTag = null;
-    private VisionPortal visionPortal = null;
+    //private AprilTagProcessor aprilTag = null;
+    //private VisionPortal visionPortal = null;
 
     private static final double DRIVE_HIGH_POWER = 1.0;
     private static final double DRIVE_LOW_POWER = 0.4;
     private static final double SORTER_SORTING_POWER = 0.3;
     private static final double SORTER_SHOOTING_POWER = -0.25;
     private static double SHOOTER_HIGH_VELOCITY = 1550;
-    private static double SHOOTER_LOW_VELOCITY = 1200;
-    private static final double INTAKE_POWER = 0.9;
+    private static double SHOOTER_LOW_VELOCITY = 1250;
+    private static final double INTAKE_POWER = 1.0;
     private static final double INTAKE_LOW_POWER = 0.7;
     private static final int STUTTER_PERIOD = 360;  // milliseconds
     private static final int STUTTER_PAUSE_DURATION = 60;  // milliseconds
@@ -62,7 +62,7 @@ public class EBDecodeTeleop extends LinearOpMode {
 
     private ElapsedTime shooterWarmupTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     private boolean fastDriveMode = true;
-    private boolean longShotMode = true;
+    private boolean longShotMode = false;
     private boolean isIntaking = false;
     private boolean isOuttaking = false;
     private double frontLeftPower, frontRightPower, rearLeftPower, rearRightPower;
@@ -160,11 +160,13 @@ public class EBDecodeTeleop extends LinearOpMode {
         upperIntake.setDirection(DcMotor.Direction.REVERSE);
 
         // Initialize webcam and April Tag processor
-        aprilTag = new AprilTagProcessor.Builder().build();
-        VisionPortal.Builder builder = new VisionPortal.Builder();
-        builder.setCamera(hardwareMap.get(WebcamName.class, "webcam"));
-        builder.addProcessor(aprilTag);
-        visionPortal = builder.build();
+        //aprilTag = new AprilTagProcessor.Builder().build();
+        //VisionPortal.Builder builder = new VisionPortal.Builder();
+        //builder.setCamera(hardwareMap.get(WebcamName.class, "webcam"));
+        //builder.addProcessor(aprilTag);
+        //visionPortal = builder.build();
+
+        //visionPortal.stopStreaming();
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData(">", "Robot Ready.  Press START.");
@@ -222,37 +224,43 @@ public class EBDecodeTeleop extends LinearOpMode {
     }
 
     public void identifyMotif() {
-        if (motifID == 0) {
-            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-            for (AprilTagDetection detection : currentDetections) {
-                if (21 <= detection.id && detection.id <= 23) {
-                    motifID = detection.id;
-                    visionPortal.stopStreaming();
-                    break;
-                }
-            }
-        }
+        //if (motifID == 0) {
+        //    List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        //    for (AprilTagDetection detection : currentDetections) {
+        //        if (21 <= detection.id && detection.id <= 23) {
+        //            motifID = detection.id;
+        //            visionPortal.stopStreaming();
+        //            break;
+        //        }
+        //    }
+        //}
     }
 
     public void sortColors() {
         boolean isShooting = (gamepad2.right_trigger > 0.25);
         boolean isSorting = gamepad2.y;
-        if (isSorting && !isShooting) {
-            sorter.setPower(SORTER_SORTING_POWER);
+        if ((isSorting || isIntaking) && !isShooting) {
+            int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
+            if (time >= STUTTER_PAUSE_DURATION) {
+                sorter.setPower(0);
+            } else {
+                sorter.setPower(SORTER_SORTING_POWER);
+            }
         } else if (isShooting == isSorting) {
             sorter.setPower(0);
         }
+        // If sorting and !shooting: don't mess with sorter because it's used for shooting
     }
 
     public void shootWithStutter() {
         // Check if LongShotMode is being toggled on or off
-        if (gamepad2.a) {
-            longShotMode = true;
-            minVelocityPct = .95;
-        } else if (gamepad2.b) {
-            longShotMode = false;
-            minVelocityPct = .85;
-        }
+        //if (gamepad2.a) {
+        //    longShotMode = true;
+        //    minVelocityPct = .95;
+        //} else if (gamepad2.b) {
+        longShotMode = false;
+        minVelocityPct = .90;
+        //}
 
         currentShooterVelocity = ((DcMotorEx)shooter).getVelocity();
 
@@ -270,8 +278,8 @@ public class EBDecodeTeleop extends LinearOpMode {
             }
 
             // Wait until shooter velocity is very close to target velocity
-            if (0.95 * targetShooterVelocity < currentShooterVelocity
-                && currentShooterVelocity < 1.00 * targetShooterVelocity) {
+            if (0.95 * targetShooterVelocity <= currentShooterVelocity
+                && currentShooterVelocity <= 1.10 * targetShooterVelocity) {
                 shooterVelocityInRange = true;
             }
 
@@ -283,12 +291,12 @@ public class EBDecodeTeleop extends LinearOpMode {
                 }
                 shooterVelocityInRange = false;
                 //Test
-                highestVelocity = 0;
+                //highestVelocity = 0;
             }
 
             // Power up the sorter motor only after shooter reaches target velocity
             // OR button has been held for 3+ seconds
-            if (shooterVelocityInRange) { //|| shooterWarmupTimer.milliseconds() > 5000) {
+            if (shooterVelocityInRange || shooterWarmupTimer.milliseconds() > 5000) {
                 int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
                 if (time < STUTTER_PAUSE_DURATION) {
                     sorter.setPower(0);
@@ -302,9 +310,9 @@ public class EBDecodeTeleop extends LinearOpMode {
             targetShooterVelocity = 0;
             shooterVelocityInRange = false;
             shooterWarmupTimer.reset();
-            shooter.setPower(0);
+            //shooter.setPower(0);
             //Test
-            highestVelocity = 0;
+            //highestVelocity = 0;
         }
 
         // Only force sorter off if we are not shooting and also not sorting
@@ -321,6 +329,10 @@ public class EBDecodeTeleop extends LinearOpMode {
             // Toggle intake
             isIntaking = !isIntaking;
             isOuttaking = false;
+
+            targetShooterVelocity = (longShotMode ? SHOOTER_HIGH_VELOCITY : SHOOTER_LOW_VELOCITY);
+            ((DcMotorEx)shooter).setVelocity(targetShooterVelocity);
+
         } else if (gamepad2.leftBumperWasPressed()){
             // Toggle outtake
             isOuttaking = !isOuttaking;
@@ -344,7 +356,7 @@ public class EBDecodeTeleop extends LinearOpMode {
 
     public void updateTelemetry() {
         // Send telemetry message with current state
-        telemetry.addData("Motif ID", motifID);
+        //telemetry.addData("Motif ID", motifID);
         telemetry.addData("Fast Drive Mode", fastDriveMode);
         telemetry.addData("Long Shot Mode", longShotMode);
         telemetry.addData("Current Shooter Velocity", currentShooterVelocity);
@@ -354,6 +366,17 @@ public class EBDecodeTeleop extends LinearOpMode {
         telemetry.addData("Shooter Warmup Timer", (int)shooterWarmupTimer.milliseconds());
         telemetry.addData("Shooter Velocity In Range", shooterVelocityInRange);
         telemetry.addData("Highest Velocity Seen", highestVelocity);
+
+        /*telemetry.addData("FrontLeft", frontLeftPower);
+        telemetry.addData("FrontRight", frontRightPower);
+        telemetry.addData("RearLeft", rearLeftPower);
+        telemetry.addData("RearRight", rearRightPower);
+
+        telemetry.addData("Gamepad: LeftStick Y (-drive)", gamepad1.left_stick_y);
+        telemetry.addData("Gamepad: LeftStick X (strafe)", gamepad1.left_stick_x);
+        telemetry.addData("Gamepad: RightTrigger (turn)", gamepad1.right_trigger);
+        telemetry.addData("Gamepad: LeftTrigger (-turn)", gamepad1.left_trigger);*/
+
         telemetry.update();
     }
 }
