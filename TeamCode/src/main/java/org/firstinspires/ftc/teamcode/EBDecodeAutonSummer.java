@@ -1,24 +1,20 @@
 package org.firstinspires.ftc.teamcode;
 
-import static java.lang.Math.max;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous(group="EBDecodeTest")
-public class EBDecodeAuton extends LinearOpMode {
+public class EBDecodeAutonSummer extends LinearOpMode {
     public DcMotor leftDrive = null;
     public DcMotor rightDrive = null;
     public DcMotor leftDriveBack = null;
     public DcMotor rightDriveBack = null;
-    public DcMotor sorter = null;
-    public DcMotor shooter = null;
-    public CRServo lowerIntake = null;
-    public CRServo upperIntake = null;
+    //public DcMotor sorter = null;
+    //public DcMotor shooter = null;
+    //public CRServo lowerIntake = null;
+    //public CRServo upperIntake = null;
 
     public static double SORTER_SORTING_POWER = -0.3;
     public static double SORTER_SHOOTING_POWER = -0.25;
@@ -79,7 +75,7 @@ public class EBDecodeAuton extends LinearOpMode {
         leftDriveBack.setDirection(DcMotor.Direction.REVERSE);
         rightDriveBack.setDirection(DcMotor.Direction.FORWARD);
 
-        sorter = hardwareMap.get(DcMotor.class, "sorter");
+        /*sorter = hardwareMap.get(DcMotor.class, "sorter");
         shooter = hardwareMap.get(DcMotor.class, "shooter");
         sorter.setDirection(DcMotor.Direction.FORWARD);
         shooter.setDirection(DcMotor.Direction.FORWARD);
@@ -90,7 +86,7 @@ public class EBDecodeAuton extends LinearOpMode {
         lowerIntake = hardwareMap.get(CRServo.class, "lowerIntake");
         upperIntake = hardwareMap.get(CRServo.class, "upperIntake");
         lowerIntake.setDirection(DcMotor.Direction.FORWARD);
-        upperIntake.setDirection(DcMotor.Direction.REVERSE);
+        upperIntake.setDirection(DcMotor.Direction.REVERSE);*/
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Ready to run");
@@ -98,7 +94,7 @@ public class EBDecodeAuton extends LinearOpMode {
     }
 
     public void intake(boolean active, boolean isShooting) {
-        if (active) {
+        /*if (active) {
             if (isShooting) {
                 lowerIntake.setPower(INTAKE_POWER);
                 upperIntake.setPower(INTAKE_LOW_POWER);
@@ -109,7 +105,7 @@ public class EBDecodeAuton extends LinearOpMode {
         } else {
             lowerIntake.setPower(0);
             upperIntake.setPower(0);
-        }
+        }*/
     }
 
     public void intake(boolean active) {
@@ -189,7 +185,7 @@ public class EBDecodeAuton extends LinearOpMode {
 
 
     public void resetSorter() {
-        double position = sorter.getCurrentPosition();
+        /*double position = sorter.getCurrentPosition();
         double positionMod = Math.abs(position % SORTER_TICKS);
         if ((positionMod < SORTER_TICKS / 8) || (positionMod > 7 * SORTER_TICKS / 8)) {
             // close enough!
@@ -207,16 +203,16 @@ public class EBDecodeAuton extends LinearOpMode {
         sorter.setTargetPosition(sorterTargetPosition);
         sorter.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         sorter.setTargetPosition(sorterTargetPosition);
-        sorter.setPower(SORTER_SHOOTING_POWER);
+        sorter.setPower(SORTER_SHOOTING_POWER);*/
     }
 
     public void warmupShooter(boolean longShot) {
-        double newTargetShooterVelocity = (longShot ? SHOOTER_HIGH_VELOCITY : SHOOTER_LOW_VELOCITY);
+        /*double newTargetShooterVelocity = (longShot ? SHOOTER_HIGH_VELOCITY : SHOOTER_LOW_VELOCITY);
         if (newTargetShooterVelocity != targetShooterVelocity) {
             shooterWarmupTimer.reset();
         }
         targetShooterVelocity = newTargetShooterVelocity;
-        ((DcMotorEx)shooter).setVelocity(targetShooterVelocity);
+        ((DcMotorEx)shooter).setVelocity(targetShooterVelocity);*/
     }
 
     public void shoot(boolean longShot) {
@@ -228,10 +224,10 @@ public class EBDecodeAuton extends LinearOpMode {
         warmupShooter(longShot);
 
         // Make sure sorter is turned off and ready to run
-        sorter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        sorter.setPower(0);
+        //sorter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //sorter.setPower(0);
 
-        shooterTimer.reset();
+        /*shooterTimer.reset();
         int shooterTime = 0;
         while (shooterTime + shooterTimer.milliseconds() < shooterDuration) {
             currentShooterVelocity = ((DcMotorEx)shooter).getVelocity();
@@ -279,14 +275,14 @@ public class EBDecodeAuton extends LinearOpMode {
 
             updateTelemetry();
             sleep(LOOP_PERIOD);
-        }
+        }*/
 
         intake(false);
         targetShooterVelocity = 0;
         shooterVelocityInRange = false;
         shooterWarmupTimer.reset();
-        shooter.setPower(0);
-        sorter.setPower(0);
+        //shooter.setPower(0);
+        //sorter.setPower(0);
 
         // Try to move sorter paddle back to the "back" position
         resetSorter();
