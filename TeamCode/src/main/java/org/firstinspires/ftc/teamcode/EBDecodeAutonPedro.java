@@ -5,6 +5,7 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Autonomous(group="EBDecodeTest")
+@Disabled
 public class EBDecodeAutonPedro extends EBDecodeAuton {
     public Follower follower;
     public List<PathChain> pathList;

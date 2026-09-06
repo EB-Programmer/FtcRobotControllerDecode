@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -36,6 +37,7 @@ import java.util.Locale;
  */
 
 @TeleOp(group="EBDecodeTest")
+@Disabled
 public class EBDecodeTeleopNewFeatures extends LinearOpMode {
     private static final double COLOR_OFF = 0.0;
     private static final double COLOR_RED = 0.277;

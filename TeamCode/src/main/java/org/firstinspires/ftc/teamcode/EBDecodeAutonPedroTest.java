@@ -5,6 +5,7 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -27,6 +28,7 @@ import java.util.List;
 
 
 @Autonomous(group="EBDecodeTest")
+@Disabled
 public class EBDecodeAutonPedroTest extends EBDecodeAutonPedro {
     public static final double START_HEADING = Math.toRadians(90);
     public static final double END_HEADING = Math.toRadians(0);

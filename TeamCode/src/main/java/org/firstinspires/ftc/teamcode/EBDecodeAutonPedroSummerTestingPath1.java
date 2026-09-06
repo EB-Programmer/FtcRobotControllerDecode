@@ -5,6 +5,7 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 /*
     To modify this Pedro Pathing Auton OpMode:
@@ -13,6 +14,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
       - Replace the whole "public static class Paths" block below with the new code
  */
 @Autonomous(group="EBDecode")
+@Disabled
 public class EBDecodeAutonPedroSummerTestingPath1 extends EBDecodeAutonPedroSummerTesting {
     @Override
     public PathChain getPathChain() {

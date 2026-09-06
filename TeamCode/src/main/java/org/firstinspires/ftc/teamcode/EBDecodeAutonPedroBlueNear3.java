@@ -4,11 +4,13 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Autonomous(group="EBDecode")
+@Disabled
 public class EBDecodeAutonPedroBlueNear3 extends EBDecodeAutonPedroBlueNear9 {
     @Override
     public List<PathChain> getPathList() {

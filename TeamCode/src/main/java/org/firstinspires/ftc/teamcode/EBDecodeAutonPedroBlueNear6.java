@@ -2,11 +2,13 @@ package org.firstinspires.ftc.teamcode;
 
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Autonomous(group="EBDecode")
+@Disabled
 public class EBDecodeAutonPedroBlueNear6 extends EBDecodeAutonPedroBlueNear9 {
     @Override
     public List<PathChain> getPathList() {

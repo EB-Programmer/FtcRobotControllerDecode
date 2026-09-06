@@ -6,6 +6,7 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.List;
         of "return Arrays.asList()".
  */
 @Autonomous(group="EBDecode")
+@Disabled
 public class EBDecodeAutonPedroBlueNear9 extends EBDecodeAutonPedro {
     public static final double START_HEADING = Math.toRadians(90);
     public static final double SHOOT_FIRST_HEADING = Math.toRadians(130);

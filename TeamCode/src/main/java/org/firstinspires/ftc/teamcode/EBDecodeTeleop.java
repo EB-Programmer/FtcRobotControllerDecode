@@ -41,38 +41,38 @@ public class EBDecodeTeleop extends LinearOpMode {
     private DcMotor rightFrontDrive = null;
     private DcMotor leftRearDrive   = null;
     private DcMotor rightRearDrive = null;
-    private DcMotor sorter = null;
-    private DcMotor shooter = null;
-    private CRServo lowerIntake = null;
-    private CRServo upperIntake = null;
+    //private DcMotor sorter = null;
+    //private DcMotor shooter = null;
+    //private CRServo lowerIntake = null;
+    //private CRServo upperIntake = null;
     //private AprilTagProcessor aprilTag = null;
     //private VisionPortal visionPortal = null;
 
     private static final double DRIVE_HIGH_POWER = 1.0;
     private static final double DRIVE_LOW_POWER = 0.4;
-    private static final double SORTER_SORTING_POWER = 0.3;
-    private static final double SORTER_SHOOTING_POWER = -0.25;
-    private static double SHOOTER_HIGH_VELOCITY = 1550;
-    private static double SHOOTER_LOW_VELOCITY = 1250;
-    private static final double INTAKE_POWER = 1.0;
-    private static final double INTAKE_LOW_POWER = 0.7;
-    private static final int STUTTER_PERIOD = 360;  // milliseconds
-    private static final int STUTTER_PAUSE_DURATION = 60;  // milliseconds
+    //private static final double SORTER_SORTING_POWER = 0.3;
+    //private static final double SORTER_SHOOTING_POWER = -0.25;
+    //private static double SHOOTER_HIGH_VELOCITY = 1550;
+    //private static double SHOOTER_LOW_VELOCITY = 1250;
+    //private static final double INTAKE_POWER = 1.0;
+    //private static final double INTAKE_LOW_POWER = 0.7;
+    //private static final int STUTTER_PERIOD = 360;  // milliseconds
+    //private static final int STUTTER_PAUSE_DURATION = 60;  // milliseconds
     private static final int LOOP_PERIOD = 20;  // milliseconds
 
-    private ElapsedTime shooterWarmupTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    //private ElapsedTime shooterWarmupTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     private boolean fastDriveMode = true;
-    private boolean longShotMode = false;
-    private boolean isIntaking = false;
-    private boolean isOuttaking = false;
+    //private boolean longShotMode = false;
+    //private boolean isIntaking = false;
+    //private boolean isOuttaking = false;
     private double frontLeftPower, frontRightPower, rearLeftPower, rearRightPower;
-    private double targetShooterVelocity = 0;
-    private double currentShooterVelocity = 0;
-    private boolean shooterVelocityInRange = false;
-    private int motifID = 0;
-    private double minVelocityPct = 0.85;
+    //private double targetShooterVelocity = 0;
+    //private double currentShooterVelocity = 0;
+    //private boolean shooterVelocityInRange = false;
+    //private int motifID = 0;
+    //private double minVelocityPct = 0.85;
 
-    private double highestVelocity = 0;
+    //private double highestVelocity = 0;
 
     @Override
     public void runOpMode() {
@@ -107,10 +107,10 @@ public class EBDecodeTeleop extends LinearOpMode {
                     0.01, 1.0);
             */
             drive();
-            intake();
-            shootWithStutter();
-            sortColors();
-            identifyMotif();
+            //intake();
+            //shootWithStutter();
+            //sortColors();
+            //identifyMotif();
             updateTelemetry();
 
             sleep(LOOP_PERIOD);
@@ -147,17 +147,17 @@ public class EBDecodeTeleop extends LinearOpMode {
         leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
         rightRearDrive.setDirection(DcMotor.Direction.FORWARD);
 
-        sorter = hardwareMap.get(DcMotor.class, "sorter");
-        shooter = hardwareMap.get(DcMotor.class, "shooter");
-        sorter.setDirection(DcMotor.Direction.FORWARD);
-        shooter.setDirection(DcMotor.Direction.FORWARD);
-        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        sorter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //sorter = hardwareMap.get(DcMotor.class, "sorter");
+        //shooter = hardwareMap.get(DcMotor.class, "shooter");
+        //sorter.setDirection(DcMotor.Direction.FORWARD);
+        //shooter.setDirection(DcMotor.Direction.FORWARD);
+        //shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //sorter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        lowerIntake = hardwareMap.get(CRServo.class, "lowerIntake");
-        upperIntake = hardwareMap.get(CRServo.class, "upperIntake");
-        lowerIntake.setDirection(DcMotor.Direction.FORWARD);
-        upperIntake.setDirection(DcMotor.Direction.REVERSE);
+        //lowerIntake = hardwareMap.get(CRServo.class, "lowerIntake");
+        //upperIntake = hardwareMap.get(CRServo.class, "upperIntake");
+        //lowerIntake.setDirection(DcMotor.Direction.FORWARD);
+        //upperIntake.setDirection(DcMotor.Direction.REVERSE);
 
         // Initialize webcam and April Tag processor
         //aprilTag = new AprilTagProcessor.Builder().build();
@@ -237,7 +237,7 @@ public class EBDecodeTeleop extends LinearOpMode {
     }
 
     public void sortColors() {
-        boolean isShooting = (gamepad2.right_trigger > 0.25);
+        /*boolean isShooting = (gamepad2.right_trigger > 0.25);
         boolean isSorting = gamepad2.y;
         if ((isSorting || isIntaking) && !isShooting) {
             int time = (int) (System.currentTimeMillis() % STUTTER_PERIOD);
@@ -248,11 +248,12 @@ public class EBDecodeTeleop extends LinearOpMode {
             }
         } else if (isShooting == isSorting) {
             sorter.setPower(0);
-        }
+        }*/
         // If sorting and !shooting: don't mess with sorter because it's used for shooting
     }
 
     public void shootWithStutter() {
+        /*
         // Check if LongShotMode is being toggled on or off
         //if (gamepad2.a) {
         //    longShotMode = true;
@@ -320,10 +321,11 @@ public class EBDecodeTeleop extends LinearOpMode {
         if (isShooting == isSorting) {
             sorter.setPower(0);
         }
+        */
     }
 
     public void intake() {
-        boolean isShooting = (gamepad2.right_trigger > 0.25);
+        /*boolean isShooting = (gamepad2.right_trigger > 0.25);
 
         if (gamepad2.rightBumperWasPressed()){
             // Toggle intake
@@ -351,31 +353,31 @@ public class EBDecodeTeleop extends LinearOpMode {
         } else {
             lowerIntake.setPower(0);
             upperIntake.setPower(0);
-        }
+        }*/
     }
 
     public void updateTelemetry() {
         // Send telemetry message with current state
         //telemetry.addData("Motif ID", motifID);
         telemetry.addData("Fast Drive Mode", fastDriveMode);
-        telemetry.addData("Long Shot Mode", longShotMode);
-        telemetry.addData("Current Shooter Velocity", currentShooterVelocity);
-        telemetry.addData("Target Shooter Velocity", targetShooterVelocity);
+        //telemetry.addData("Long Shot Mode", longShotMode);
+        //telemetry.addData("Current Shooter Velocity", currentShooterVelocity);
+        //telemetry.addData("Target Shooter Velocity", targetShooterVelocity);
 
-        telemetry.addData("Test Values", "");
-        telemetry.addData("Shooter Warmup Timer", (int)shooterWarmupTimer.milliseconds());
-        telemetry.addData("Shooter Velocity In Range", shooterVelocityInRange);
-        telemetry.addData("Highest Velocity Seen", highestVelocity);
+        //telemetry.addData("Test Values", "");
+        //telemetry.addData("Shooter Warmup Timer", (int)shooterWarmupTimer.milliseconds());
+        //telemetry.addData("Shooter Velocity In Range", shooterVelocityInRange);
+        //telemetry.addData("Highest Velocity Seen", highestVelocity);
 
-        /*telemetry.addData("FrontLeft", frontLeftPower);
-        telemetry.addData("FrontRight", frontRightPower);
-        telemetry.addData("RearLeft", rearLeftPower);
-        telemetry.addData("RearRight", rearRightPower);
+        telemetry.addData("frontLeftPower", frontLeftPower);
+        telemetry.addData("frontRightPower", frontRightPower);
+        telemetry.addData("rearLeftPower", rearLeftPower);
+        telemetry.addData("rearRightPower", rearRightPower);
 
-        telemetry.addData("Gamepad: LeftStick Y (-drive)", gamepad1.left_stick_y);
-        telemetry.addData("Gamepad: LeftStick X (strafe)", gamepad1.left_stick_x);
-        telemetry.addData("Gamepad: RightTrigger (turn)", gamepad1.right_trigger);
-        telemetry.addData("Gamepad: LeftTrigger (-turn)", gamepad1.left_trigger);*/
+        telemetry.addData("gamepad1 LeftStick Y (-drive)", gamepad1.left_stick_y);
+        telemetry.addData("gamepad1 LeftStick X (strafe)", gamepad1.left_stick_x);
+        telemetry.addData("gamepad1 RightTrigger (turn)", gamepad1.right_trigger);
+        telemetry.addData("gamepad1 LeftTrigger (-turn)", gamepad1.left_trigger);
 
         telemetry.update();
     }

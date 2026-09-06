@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 @Autonomous(group="EBDecode")
+@Disabled
 public class EBDecodeAutonPedroRedFar9 extends EBDecodeAutonPedroBlueFar9 {
     @Override
     public boolean shouldFlipPath() {
