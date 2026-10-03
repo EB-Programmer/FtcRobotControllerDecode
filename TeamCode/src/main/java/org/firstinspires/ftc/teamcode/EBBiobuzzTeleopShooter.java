@@ -33,6 +33,7 @@ public class EBBiobuzzTeleopShooter extends LinearOpMode {
     private static final double DRIVE_HIGH_POWER = 1.0;
     private static final double DRIVE_LOW_POWER = 0.4;
     private static double SHOOTER_POWER = 0.5;
+    private static final double SHOOTER_TICKS_PER_REV = 384.5;
     private static final int LOOP_PERIOD = 20;  // milliseconds
 
     private boolean fastDriveMode = true;
@@ -163,7 +164,7 @@ public class EBBiobuzzTeleopShooter extends LinearOpMode {
 
     public void updateTelemetry() {
         // Send telemetry message with current state
-        telemetry.addData("Shooter Velocity", shooter.getVelocity());
+        telemetry.addData("Shooter Velocity (RPM)", shooter.getVelocity() * 60 / SHOOTER_TICKS_PER_REV);
 
         telemetry.addLine();
         telemetry.addData("Fast Drive Mode", fastDriveMode);
