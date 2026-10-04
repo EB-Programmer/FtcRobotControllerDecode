@@ -24,6 +24,9 @@ Plan on about an hour, most of it downloads.
 Our team uses **one shared GitHub account, `EB-Programmer`**. Each person still gets their own SSH key
 (a file on your computer that proves to GitHub that it's you), and you add that key to the shared account.
 
+> 🪟 **Windows users:** if you'd rather click than type commands, you can use **GitHub Desktop** instead of
+> sections 1.1 to 1.7. It needs no SSH keys. Skip to [1.8](#18-windows-alternative-github-desktop).
+
 ### 1.1 Install Git
 
 - 🍎 **Mac:** open the **Terminal** app and run `git --version`. If Git isn't installed, macOS offers to install
@@ -126,6 +129,27 @@ Tips:
   resolve a *merge conflict*. Ask a teammate for help the first time.
 - Commit small and often. Never commit code that doesn't build.
 
+### 1.8 Windows alternative: GitHub Desktop
+
+GitHub Desktop is a free app with buttons for clone, pull, commit and push. You do **not** need Git Bash, an SSH
+key or the `~/.ssh/config` entry. (If you do 1.1 to 1.7, you don't need this section.)
+
+1. Download and install **GitHub Desktop** from <https://desktop.github.com/>.
+2. Open it and choose **Sign in to GitHub.com**. Your browser opens. Sign in as **EB-Programmer** (login and password
+   from your mentor). GitHub will ask for a verification code. **Coach Robert** gets the text. Then click
+   **Authorize** and return to GitHub Desktop.
+3. When it asks for your Git name and email, enter **EB-Programmer** and **eb_programmer@yahoo.com**.
+4. **Clone the repo:** **File → Clone repository → URL**. Enter
+   `https://github.com/EB-Programmer/FtcRobotControllerDecode` and choose a local path **without spaces**
+   (for example `C:\Users\<you>\Development`). Click **Clone**.
+5. **Everyday use** (we work directly on `main`):
+   - **Fetch origin / Pull origin** (top bar): get everyone else's latest changes. Do this **before you start working**.
+   - Your changed files appear in the left panel. Type a short summary in the box at the bottom left and click
+     **Commit to main**.
+   - **Push origin** (top bar): send your commits to GitHub.
+
+> The repository name may change for new seasons. Check the repo page on GitHub if the clone fails.
+
 ---
 
 ## Part 2: Android Studio
@@ -141,12 +165,15 @@ Robot Controller phone).
 2. Install it.
    - 🍎 Open the `.dmg` and drag **Android Studio** into **Applications**.
    - 🪟 Run the installer with the default options.
-3. Launch it. In the setup wizard choose **Standard** installation. It downloads the Android SDK (several GB,
-   so use good Wi-Fi).
+3. Launch it. If it asks about sending usage data to Google, either answer is fine. In the setup wizard choose
+   **Standard** installation. It downloads the Android SDK (several GB, so use good Wi-Fi).
 
-**Version:** this project needs **Android Studio Ladybug (2024.2) or newer**. It uses Android Gradle Plugin 8.7.0 and
-Gradle 8.9. If Android Studio ever offers to **upgrade the Android Gradle Plugin or Gradle ("AGP Upgrade
-Assistant")**, click **Don't remind me / Not now**. Upgrading can break the FTC SDK.
+**Version:** just install the **latest** Android Studio. The FTC docs mention Ladybug (2024.2) as the minimum, but
+newer versions work fine, and being a few versions behind doesn't matter either.
+
+**Never upgrade Gradle.** If Android Studio offers to **upgrade the Gradle version or Android Gradle Plugin
+("AGP Upgrade Assistant")** for the project, decline (**Not now / Don't remind me**). If someone upgrades it by
+accident, the JDK setting resets and you'll have to set it back to 17 (see 2.3).
 
 ### 2.2 Open the project
 
@@ -163,18 +190,22 @@ If the sync complains about a missing SDK or component, click the link in the er
 
 ### 2.3 Unique settings for this project
 
-> The team's setup guide video is [Brogan's Android Studio setup video](https://www.youtube.com/watch?v=_ZIYtNadJBo).
-> This section was written from the project's build files, so **follow the video if anything below disagrees
-> with it**, and then fix this guide.
+> This section follows [Coach Pratt's Android Studio setup video](https://www.youtube.com/watch?v=_ZIYtNadJBo)
+> ("Brogan's video"), which is worth watching once. FIRST's official text tutorial is also linked at the bottom
+> of this section, but the video notes that parts of it are out of date.
 
-- **Gradle JDK must be version 17 (important):** the project only builds with **JDK 17**. Don't use the default
-  or a newer version.
-  1. **Install JDK 17.** The easiest way is inside Android Studio. Open **Settings** (🍎 *Android Studio → Settings*,
-     🪟 *File → Settings*), go to **Build, Execution, Deployment → Build Tools → Gradle**, open the
-     **Gradle JDK** drop-down and choose **Download JDK…**. Pick version **17** and click **Download**.
-     (Alternatively, install JDK 17 yourself, for example Eclipse Temurin 17 from <https://adoptium.net/>.)
-  2. **Select it.** In that same **Gradle JDK** drop-down, choose the **17** entry and click **OK**.
-  3. Run **File → Sync Project with Gradle Files** and make sure it succeeds.
+- **Gradle JDK must be version 17 (important).** The FTC SDK only works with **Java Development Kit (JDK) 17**.
+  If you use a newer JDK, the project won't build.
+  1. **Download JDK 17** from Oracle's Java archive: <https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html>.
+     Pick the installer that matches your computer:
+     - 🍎 Apple silicon Mac: **macOS Arm 64 DMG Installer**
+     - 🪟 Windows: **x64 Installer** (`.exe`)
+  2. **Install it** by double-clicking the installer and accepting the defaults (it may ask for your computer's
+     admin password).
+  3. **Point Android Studio at it.** Open **Settings** (🍎 *Android Studio → Settings*, 🪟 *File → Settings*),
+     go to **Build, Execution, Deployment → Build Tools → Gradle**. Under **Gradle JDK**, pick the **17** entry
+     in the drop-down, or click the folder icon, browse to the JDK 17 folder and select it. Click **OK**.
+  4. Run **File → Sync Project with Gradle Files** and make sure it succeeds.
 - **SDK platform:** the project compiles against **Android SDK 36**. Android Studio normally offers to download it
   during sync. You can also check **Tools → SDK Manager → SDK Platforms**.
 - **Official FTC reference:** FIRST's own walkthrough is at
@@ -185,8 +216,11 @@ If the sync complains about a missing SDK or component, click the link in the er
 - Select the **TeamCode** module and run **Build → Make Project**, or just try to run it (next step).
 - A successful build ends with `BUILD SUCCESSFUL`. Errors appear in the **Build** panel at the bottom.
 
-All of our code is in
-`TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`.
+**Write your code in the `TeamCode` folder, never in `FtcRobotController`.** All of our code is in
+`TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`. The `FtcRobotController` folder is the official FTC
+SDK. It does contain a lot of useful, well-commented example opmodes (under
+`FtcRobotController/src/main/java/org/firstinspires/ftc/robotcontroller/external/samples`), which are great to read
+when you need to learn how to use a sensor or motor.
 
 ### 2.5 Load code onto the robot
 
@@ -226,7 +260,7 @@ You install the app on the **Control Hub** over a USB-C cable.
 | `Permission denied (publickey)` when cloning or pushing | The key isn't added to GitHub (1.4) or `~/.ssh/config` is wrong (1.5). Re-run `ssh -T git@eb.github.com`. |
 | Clone says `Could not resolve hostname eb.github.com` | The `Host eb.github.com` entry in `~/.ssh/config` is missing or misspelled. |
 | Gradle sync fails with a Java or JDK error | Make sure **Gradle JDK** is set to version **17** (2.3). |
-| Android Studio wants to upgrade Gradle/AGP | Decline. See 2.1. |
+| Android Studio wants to upgrade Gradle/AGP | Decline. See 2.1. If it already happened, set **Gradle JDK** back to 17 (2.3). |
 | Control Hub doesn't appear in the device list | Check that the USB-C cable is plugged in at both ends and the Control Hub is powered on. Try a different cable or port. |
 | An opmode isn't on the Driver Station | It's probably marked `@Disabled`. |
 
@@ -236,7 +270,7 @@ You install the app on the **Control Hub** over a USB-C cable.
 
 Once you're set up, this is all you need:
 
-1. **Pull** (on a mobile hotspot if you're at school): in a terminal (Git Bash on Windows) inside the repo folder, run `git pull`.
+1. **Pull** (on a mobile hotspot if you're at school): in a terminal (Git Bash on Windows) inside the repo folder, run `git pull`. (GitHub Desktop users: click **Fetch origin**, then **Pull origin**.)
 2. **Open the project** in Android Studio and let Gradle finish syncing if it starts one.
 3. **Connect to the robot:** plug the Control Hub into your computer with the USB-C cable.
 4. **Press the green ▶ Run button** (top toolbar, with **TeamCode** selected). Wait for it to install.
