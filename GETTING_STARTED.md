@@ -1,81 +1,78 @@
-# Getting Started (Electric Bacon FTC Programming)
+# Getting Started
 
-This guide gets a new team member from a blank laptop to:
+This is how to get a new person set up to write code for the team. When you're done you'll be able to:
 
-1. **Git + GitHub**: able to clone, pull, and push code
-2. **Android Studio**: able to build the code and load it onto a robot
+1. Clone, pull, and push code with git and GitHub
+2. Build the code in Android Studio and load it onto a robot
 
-It works on **Apple silicon Macs** and **Windows**. Steps that differ are marked 🍎 Mac or 🪟 Windows.
-Plan on about an hour, most of it downloads.
+It works for Apple silicon Macs and Windows. When the steps are different I'll say Mac or Windows. Plan on
+about an hour, and most of that is waiting on downloads.
 
-> **Before you start:** ask a mentor or the team programming lead for the **login and password for the shared
-> GitHub account (`EB-Programmer`)**. You'll need it in Part 1. Don't post it anywhere public.
+Before you start, get the login and password for our shared GitHub account (EB-Programmer) from a mentor.
+You'll need it in Part 1. Don't post it anywhere public.
 
-> **At school? Use a mobile hotspot.** The school Wi-Fi often blocks large downloads and sometimes
-> `github.com` itself. When you're at school and need to use git (clone, pull, push) or download anything
-> (Git, Android Studio, the Android SDK, Gradle sync), turn on your phone's **mobile hotspot** and connect your
-> computer to it instead. The Android Studio download and first project sync are several GB, so a hotspot is best
-> for those, or do them at home on your own Wi-Fi.
+If you're at school, use a mobile hotspot from your phone instead of the school Wi-Fi. The school network
+rarely lets you download big things and sometimes blocks github.com completely. That goes for git (clone, pull,
+push) and for downloads (Git, Android Studio, the Android SDK, Gradle sync). Android Studio and the first sync
+are several GB, so doing those at home is even better.
 
 ---
 
 ## Part 1: Git and GitHub
 
-Our team uses **one shared GitHub account, `EB-Programmer`**. Each person still gets their own SSH key
-(a file on your computer that proves to GitHub that it's you), and you add that key to the shared account.
+We all share one GitHub account, EB-Programmer. Each person still makes their own SSH key (a file on your
+computer that proves to GitHub who you are) and adds it to that account.
 
-> 🪟 **Windows users:** if you'd rather click than type commands, you can use **GitHub Desktop** instead of
-> sections 1.1 to 1.7. It needs no SSH keys. Skip to [1.8](#18-windows-alternative-github-desktop).
+If you're on Windows and would rather click buttons than type commands, you can use GitHub Desktop and skip to
+section 1.8. It doesn't need SSH keys.
 
 ### 1.1 Install Git
 
-- 🍎 **Mac:** open the **Terminal** app and run `git --version`. If Git isn't installed, macOS offers to install
-  the Command Line Tools. Click **Install** and wait for it to finish.
-- 🪟 **Windows:** install **Git for Windows** from <https://git-scm.com/download/win>. The default options are
-  fine. This also installs **Git Bash**, a terminal that works like the Mac one.
-  **Use Git Bash for every command in this guide.**
+Mac: open Terminal and run `git --version`. If Git isn't installed, macOS will offer to install the command
+line tools. Say yes and wait for it to finish.
 
-### 1.2 Tell Git who you are
+Windows: install Git for Windows from <https://git-scm.com/download/win>. The default options are fine. It comes
+with Git Bash, which is a terminal that works like the Mac one. Use Git Bash for every command in this guide.
 
-The shared account means every commit would look like it came from `EB-Programmer`. Set your commit name to
-`EB-Programmer` too, for consistency.
+### 1.2 Tell git who you are
+
+Since everyone uses the same account, every commit shows up as EB-Programmer, so set it that way:
 
 ```bash
 git config --global user.name "EB-Programmer"
 git config --global user.email "eb_programmer@yahoo.com"
 ```
 
-### 1.3 Create your SSH key
+### 1.3 Make your SSH key
 
 ```bash
 ssh-keygen -t ed25519 -C "your-name-and-computer" -f ~/.ssh/id_ed25519_eb
 ```
 
-- Press **Enter** at the passphrase prompt to skip it, or set one if you like.
-- This creates two files in `~/.ssh/`: `id_ed25519_eb` (**private. Never share or upload it**) and
-  `id_ed25519_eb.pub` (public, safe to share).
+Hit Enter at the passphrase prompt to skip it, or set one if you want. This makes two files in `~/.ssh/`.
+`id_ed25519_eb` is private, so never share it or upload it. `id_ed25519_eb.pub` is the public one.
 
-Show the public key and copy the whole line, starting with `ssh-ed25519`:
+Print the public key and copy the whole line (it starts with `ssh-ed25519`):
 
 ```bash
 cat ~/.ssh/id_ed25519_eb.pub
 ```
 
-### 1.4 Add your key to the shared GitHub account
+### 1.4 Add the key to the GitHub account
 
-1. Go to <https://github.com> and sign in as **EB-Programmer** (login and password from your mentor).
-   GitHub will ask for a verification code (2FA). The code is texted to **Coach Robert**, so ask him for it
-   when you sign in.
-2. Click the profile picture (top right), then **Settings**, then **SSH and GPG keys**, then **New SSH key**.
-3. **Title:** your name and computer, e.g. `Sam - Windows laptop`, so we can tell the keys apart.
-4. **Key:** paste the line you copied. Click **Add SSH key**.
+1. Go to <https://github.com> and sign in as EB-Programmer. GitHub will ask for a 2FA code, which gets texted
+   to Coach Robert, so you'll need to ask him for it.
+2. Click the profile picture in the top right, then Settings, then SSH and GPG keys, then New SSH key.
+3. For the title, put your name and computer, like `Sam - Windows laptop`, so we can tell the keys apart.
+4. Paste the key you copied and click Add SSH key.
 
 ### 1.5 Tell SSH to use that key for our repo
 
-You may someday use a personal GitHub account on the same computer. A small config entry makes sure the right key
-is used for the team repo. Our repo's address uses the host name `eb.github.com` for this reason.
+If you ever use a personal GitHub account on the same computer, SSH needs to know which key goes with which
+account. Our repo address uses a made-up host name, `eb.github.com`, and this config entry is what connects it
+to the right key.
 
-Open (or create) the file `~/.ssh/config` and add:
+Open (or create) `~/.ssh/config` and add this:
 
 ```
 # EB-Programmer GitHub
@@ -87,193 +84,178 @@ Host eb.github.com
     IdentitiesOnly yes
 ```
 
-- 🍎 Mac: `nano ~/.ssh/config` (save with Ctrl+O, Enter, Ctrl+X).
-- 🪟 Windows: in Git Bash, `notepad ~/.ssh/config`. If Notepad adds `.txt` to the name, rename the file so it has
-  no extension.
+On a Mac you can do this with `nano ~/.ssh/config` (save with Ctrl+O, Enter, then Ctrl+X). On Windows, in Git
+Bash, use `notepad ~/.ssh/config`. If Notepad tacks `.txt` onto the filename, rename the file so it has no
+extension.
 
-Test it:
+Then test it:
 
 ```bash
 ssh -T git@eb.github.com
 ```
 
-The first time, type `yes` when it asks about the host's fingerprint. Success looks like
+The first time it'll ask about a fingerprint, so type `yes`. You should get back something like
 `Hi EB-Programmer! You've successfully authenticated, but GitHub does not provide shell access.`
 
 ### 1.6 Clone the repo
 
-Choose a folder for your code (a path **without spaces** is safest) and clone:
+Pick a folder for your code. Try to avoid spaces in the path. Then:
 
 ```bash
 mkdir -p ~/Development && cd ~/Development
 git clone git@eb.github.com:EB-Programmer/FtcRobotControllerDecode.git
 ```
 
-> The repository name may change for new seasons. Check the repo page on GitHub if the clone fails.
-> Always keep `eb.github.com` as the host part of the address, not `github.com`.
+The repo name might change from season to season, so if the clone fails, check the name on GitHub. Keep
+`eb.github.com` as the host in the address, don't switch it to `github.com`.
 
-### 1.7 Everyday git: pull, commit, push
+### 1.7 Pulling, committing, and pushing
 
 ```bash
-git pull                       # get everyone else's latest changes. Do this BEFORE you start working
+git pull                       # get everyone else's changes. Do this before you start working
 git status                     # see what you changed
 git add -A                     # stage your changes
 git commit -m "Add shooter power tuning to teleop"
 git push                       # send your commits to GitHub
 ```
 
-Tips:
+We work straight on `main`. No branches, no pull requests, just pull, commit, and push.
 
-- **We work directly on `main`.** There are no branches or pull requests. Just pull, commit and push.
-- **Pull before you start, and again before you push.** If two people edit the same file, Git may ask you to
-  resolve a *merge conflict*. Ask a teammate for help the first time.
-- Commit small and often. Never commit code that doesn't build.
+Pull before you start and again before you push. If two people changed the same file, git might ask you to sort
+out a merge conflict, and the first time that happens, grab a teammate. Commit small and often, and don't push
+code that doesn't build.
 
-### 1.8 Windows alternative: GitHub Desktop
+### 1.8 Windows option: GitHub Desktop
 
-GitHub Desktop is a free app with buttons for clone, pull, commit and push. You do **not** need Git Bash, an SSH
-key or the `~/.ssh/config` entry. (If you do 1.1 to 1.7, you don't need this section.)
+If you use this you can skip 1.1 through 1.7. You don't need Git Bash, an SSH key, or the config entry.
 
-1. Download and install **GitHub Desktop** from <https://desktop.github.com/>.
-2. Open it and choose **Sign in to GitHub.com**. Your browser opens. Sign in as **EB-Programmer** (login and password
-   from your mentor). GitHub will ask for a verification code. **Coach Robert** gets the text. Then click
-   **Authorize** and return to GitHub Desktop.
-3. When it asks for your Git name and email, enter **EB-Programmer** and **eb_programmer@yahoo.com**.
-4. **Clone the repo:** **File → Clone repository → URL**. Enter
-   `https://github.com/EB-Programmer/FtcRobotControllerDecode` and choose a local path **without spaces**
-   (for example `C:\Users\<you>\Development`). Click **Clone**.
-5. **Everyday use** (we work directly on `main`):
-   - **Fetch origin / Pull origin** (top bar): get everyone else's latest changes. Do this **before you start working**.
-   - Your changed files appear in the left panel. Type a short summary in the box at the bottom left and click
-     **Commit to main**.
-   - **Push origin** (top bar): send your commits to GitHub.
-
-> The repository name may change for new seasons. Check the repo page on GitHub if the clone fails.
+1. Download and install GitHub Desktop from <https://desktop.github.com/>.
+2. Open it and choose Sign in to GitHub.com. Your browser opens, so sign in as EB-Programmer. Coach Robert gets
+   the 2FA text. Click Authorize and go back to GitHub Desktop.
+3. When it asks for your name and email, use EB-Programmer and eb_programmer@yahoo.com.
+4. Go to File, then Clone repository, then URL. Enter `https://github.com/EB-Programmer/FtcRobotControllerDecode`,
+   pick a folder (for example `C:\Users\<you>\Development`), and click Clone.
+5. To use it day to day: Fetch origin / Pull origin at the top gets everyone's changes (do it before you start).
+   Your changed files show up on the left, so type a short summary in the box at the bottom left and click
+   Commit to main. Then click Push origin at the top.
 
 ---
 
 ## Part 2: Android Studio
 
-Android Studio is the program we use to edit the code, build the robot app, and load it onto the Control Hub (or
-Robot Controller phone).
+Android Studio is what we use to edit the code, build the robot app, and load it onto the Control Hub.
+
+I'd recommend watching [Coach Pratt's setup video](https://www.youtube.com/watch?v=_ZIYtNadJBo) once. It's what
+this part is based on. If anything here doesn't match the video, trust the video and fix this doc. FIRST also has
+a text version
+[here](https://ftc-docs.firstinspires.org/programming_resources/android_studio_java/Android-Studio-Tutorial.html),
+but the video points out that parts of it are out of date.
 
 ### 2.1 Download and install
 
-1. Download from <https://developer.android.com/studio>.
-   - 🍎 Choose **Mac with Apple chip** (not Intel).
-   - 🪟 Choose the Windows `.exe`.
-2. Install it.
-   - 🍎 Open the `.dmg` and drag **Android Studio** into **Applications**.
-   - 🪟 Run the installer with the default options.
-3. Launch it. If it asks about sending usage data to Google, either answer is fine. In the setup wizard choose
-   **Standard** installation. It downloads the Android SDK (several GB, so use good Wi-Fi).
+Download it from <https://developer.android.com/studio>. Get the latest version. The FTC docs talk about
+Ladybug (2024.2) as the minimum, but newer is fine, and being a few versions behind doesn't matter either.
 
-**Version:** just install the **latest** Android Studio. The FTC docs mention Ladybug (2024.2) as the minimum, but
-newer versions work fine, and being a few versions behind doesn't matter either.
+On a Mac, make sure you pick the Apple chip version, not Intel. Open the `.dmg` and drag Android Studio into
+Applications. On Windows, run the installer and take the defaults.
 
-**Never upgrade Gradle.** If Android Studio offers to **upgrade the Gradle version or Android Gradle Plugin
-("AGP Upgrade Assistant")** for the project, decline (**Not now / Don't remind me**). If someone upgrades it by
-accident, the JDK setting resets and you'll have to set it back to 17 (see 2.3).
+Launch it. If it asks about sending usage data to Google, either answer is fine. In the setup wizard choose
+Standard. It will download the Android SDK, which is several GB.
+
+One thing to watch out for: never upgrade Gradle. If Android Studio offers to upgrade the Gradle version or the
+Android Gradle Plugin for the project, say no (Not now, or Don't remind me). If it gets upgraded by accident, the
+JDK setting resets and you'll have to set it back to 17 (see 2.3).
 
 ### 2.2 Open the project
 
-1. **File → Open** (or **Open** on the welcome screen).
-2. Select the **folder you cloned** (`FtcRobotControllerDecode`). The folder that contains `build.gradle` and
-   `TeamCode`, not a subfolder.
-3. If asked, choose **Trust Project**.
-4. Wait for the **Gradle sync** to finish (progress bar at the bottom). The first sync downloads a lot and can
-   take 5 to 15 minutes.
+1. Go to File, then Open.
+2. Pick the folder you cloned (`FtcRobotControllerDecode`). It should be the one that has `build.gradle` and
+   `TeamCode` in it, not a folder inside it.
+3. If it asks, choose Trust Project.
+4. Wait for the Gradle sync to finish (there's a progress bar at the bottom). The first one can take 5 to 15
+   minutes.
 
-If the first sync fails with a Java or JDK error, that's expected. Set up **JDK 17** as described in 2.3, then sync again.
+If the first sync fails with a Java or JDK error, that's expected. Do 2.3, then sync again. If it complains about
+a missing SDK or component, click the link in the error and let it install.
 
-If the sync complains about a missing SDK or component, click the link in the error message to install it.
+### 2.3 Project settings (JDK 17)
 
-### 2.3 Unique settings for this project
+The FTC SDK only works with JDK 17. If you use a newer Java, the project won't build.
 
-> This section follows [Coach Pratt's Android Studio setup video](https://www.youtube.com/watch?v=_ZIYtNadJBo)
-> ("Brogan's video"), which is worth watching once. FIRST's official text tutorial is also linked at the bottom
-> of this section, but the video notes that parts of it are out of date.
+1. Download JDK 17 from Oracle's Java archive:
+   <https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html>. On an Apple silicon Mac get
+   the macOS Arm 64 DMG Installer. On Windows get the x64 Installer.
+2. Run the installer and take the defaults. It may ask for your computer password.
+3. In Android Studio, open Settings (Mac: Android Studio menu, then Settings. Windows: File, then Settings) and
+   go to Build, Execution, Deployment, then Build Tools, then Gradle. Under Gradle JDK, pick the 17 entry from
+   the drop-down. If it isn't listed, click the folder icon and browse to the JDK 17 folder. Click OK.
+4. Do File, then Sync Project with Gradle Files, and make sure it works.
 
-- **Gradle JDK must be version 17 (important).** The FTC SDK only works with **Java Development Kit (JDK) 17**.
-  If you use a newer JDK, the project won't build.
-  1. **Download JDK 17** from Oracle's Java archive: <https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html>.
-     Pick the installer that matches your computer:
-     - 🍎 Apple silicon Mac: **macOS Arm 64 DMG Installer**
-     - 🪟 Windows: **x64 Installer** (`.exe`)
-  2. **Install it** by double-clicking the installer and accepting the defaults (it may ask for your computer's
-     admin password).
-  3. **Point Android Studio at it.** Open **Settings** (🍎 *Android Studio → Settings*, 🪟 *File → Settings*),
-     go to **Build, Execution, Deployment → Build Tools → Gradle**. Under **Gradle JDK**, pick the **17** entry
-     in the drop-down, or click the folder icon, browse to the JDK 17 folder and select it. Click **OK**.
-  4. Run **File → Sync Project with Gradle Files** and make sure it succeeds.
-- **SDK platform:** the project compiles against **Android SDK 36**. Android Studio normally offers to download it
-  during sync. You can also check **Tools → SDK Manager → SDK Platforms**.
-- **Official FTC reference:** FIRST's own walkthrough is at
-  <https://ftc-docs.firstinspires.org/programming_resources/android_studio_java/Android-Studio-Tutorial.html>.
+The project also builds against Android SDK 36. Android Studio usually offers to download it during the sync. If
+not, check Tools, then SDK Manager, then SDK Platforms.
 
 ### 2.4 Build the code
 
-- Select the **TeamCode** module and run **Build → Make Project**, or just try to run it (next step).
-- A successful build ends with `BUILD SUCCESSFUL`. Errors appear in the **Build** panel at the bottom.
+Select the TeamCode module and do Build, then Make Project, or just try to run it (next section). A good build
+ends with `BUILD SUCCESSFUL`. Errors show up in the Build panel at the bottom.
 
-**Write your code in the `TeamCode` folder, never in `FtcRobotController`.** All of our code is in
-`TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`. The `FtcRobotController` folder is the official FTC
-SDK. It does contain a lot of useful, well-commented example opmodes (under
-`FtcRobotController/src/main/java/org/firstinspires/ftc/robotcontroller/external/samples`), which are great to read
-when you need to learn how to use a sensor or motor.
+Write your code in the `TeamCode` folder, not in `FtcRobotController`. All of ours is in
+`TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`. `FtcRobotController` is the official FTC SDK. It does
+have a bunch of well commented example opmodes in
+`FtcRobotController/src/main/java/org/firstinspires/ftc/robotcontroller/external/samples`, and those are worth
+reading when you need to figure out how to use a sensor or motor.
 
 ### 2.5 Load code onto the robot
 
-You install the app on the **Control Hub** over a USB-C cable.
+We just use a USB-C cable.
 
-1. Connect your computer to the Control Hub with a USB-C cable, using the Control Hub's USB-C port, and
-   make sure the Control Hub is powered on.
-2. In the device drop-down at the top of Android Studio, make sure the Control Hub shows up
-   (it appears as something like *Control Hub v1.0*).
-3. In the run-configuration drop-down, choose **TeamCode**.
-4. Click the green ▶ **Run** button. The app builds and installs, which takes about a minute.
-5. On the Driver Station, your opmodes appear in the **Autonomous** and **TeleOp** lists. An opmode only shows up
-   if it's **not** marked `@Disabled`.
-
----
-
-## Part 3: Other things worth knowing
-
-- **Opmodes and `@Disabled`:** a class with `@Disabled` above it is hidden from the Driver Station. Remove it to
-  make an opmode appear. Many of our older opmodes are disabled on purpose.
-- **Pedro Pathing autonomous paths:** we draw paths at <https://visualizer.pedropathing.com/>, export the code
-  with the `</>` button, and paste it into an auton opmode. Saved `.pp` path files are kept in the repo root.
-- **Hardware names:** the code looks up motors and servos by the name in the robot's *hardware configuration*
-  (for example `leftFrontDrive`, `shooter`). If a name in the code doesn't match the config on the Control Hub,
-  the opmode crashes when you press INIT.
-- **Gamepad controls:** the top of each teleop file has a comment listing the controls.
-- **Where to get help:** ask in the team chat, or check the
-  [FTC docs](https://ftc-docs.firstinspires.org/).
+1. Plug the Control Hub into your computer with the USB-C cable and make sure the Control Hub is on.
+2. In the device drop-down at the top of Android Studio, check that the Control Hub shows up. It looks
+   something like "Control Hub v1.0".
+3. In the run configuration drop-down next to it, choose TeamCode.
+4. Click the green play button. It builds and installs, which takes about a minute.
+5. On the Driver Station, your opmodes will be in the Autonomous and TeleOp lists. An opmode only shows up if
+   it isn't marked `@Disabled`.
 
 ---
 
-## Quick troubleshooting
+## Part 3: Other stuff worth knowing
+
+- A class with `@Disabled` above it is hidden from the Driver Station. Take it off to make the opmode show up.
+  Lots of our older opmodes are disabled on purpose.
+- We draw autonomous paths at <https://visualizer.pedropathing.com/>, click the `</>` button to export the
+  code, and paste it into an auton opmode. The saved `.pp` path files are in the repo root.
+- The code finds motors and servos by the names in the robot's hardware configuration (like `leftFrontDrive` or
+  `shooter`). If a name in the code doesn't match the config on the Control Hub, the opmode crashes when you
+  press INIT.
+- The top of each teleop file has a comment listing the gamepad controls.
+- If you get stuck, ask in the team chat. The [FTC docs](https://ftc-docs.firstinspires.org/) are also good.
+
+---
+
+## Troubleshooting
 
 | Problem | Try |
 |---|---|
-| Clone, pull or push hangs or fails at school, or a download won't start | The school Wi-Fi is probably blocking it. Switch your computer to a phone's mobile hotspot and try again. |
-| `Permission denied (publickey)` when cloning or pushing | The key isn't added to GitHub (1.4) or `~/.ssh/config` is wrong (1.5). Re-run `ssh -T git@eb.github.com`. |
-| Clone says `Could not resolve hostname eb.github.com` | The `Host eb.github.com` entry in `~/.ssh/config` is missing or misspelled. |
-| Gradle sync fails with a Java or JDK error | Make sure **Gradle JDK** is set to version **17** (2.3). |
-| Android Studio wants to upgrade Gradle/AGP | Decline. See 2.1. If it already happened, set **Gradle JDK** back to 17 (2.3). |
-| Control Hub doesn't appear in the device list | Check that the USB-C cable is plugged in at both ends and the Control Hub is powered on. Try a different cable or port. |
+| Clone, pull, or push hangs or fails at school, or a download won't start | The school Wi-Fi is probably blocking it. Switch to a phone's mobile hotspot. |
+| `Permission denied (publickey)` when cloning or pushing | The key isn't added to GitHub (1.4) or `~/.ssh/config` is wrong (1.5). Run `ssh -T git@eb.github.com` again. |
+| `Could not resolve hostname eb.github.com` | The `Host eb.github.com` entry in `~/.ssh/config` is missing or misspelled. |
+| Gradle sync fails with a Java or JDK error | Make sure Gradle JDK is set to 17 (2.3). |
+| Android Studio wants to upgrade Gradle | Say no. If it already happened, set Gradle JDK back to 17 (2.3). |
+| Control Hub isn't in the device list | Check the USB-C cable at both ends and that the Control Hub is on. Try a different cable or port. |
 | An opmode isn't on the Driver Station | It's probably marked `@Disabled`. |
 
 ---
 
-## Quick Workflow: Get the Latest Code onto the Robot
+## Quick workflow: new code onto the robot
 
 Once you're set up, this is all you need:
 
-1. **Pull** (on a mobile hotspot if you're at school): in a terminal (Git Bash on Windows) inside the repo folder, run `git pull`. (GitHub Desktop users: click **Fetch origin**, then **Pull origin**.)
-2. **Open the project** in Android Studio and let Gradle finish syncing if it starts one.
-3. **Connect to the robot:** plug the Control Hub into your computer with the USB-C cable.
-4. **Press the green ▶ Run button** (top toolbar, with **TeamCode** selected). Wait for it to install.
+1. Run `git pull` in the repo folder (on a hotspot if you're at school). In GitHub Desktop, click Fetch origin,
+   then Pull origin.
+2. Open the project in Android Studio and let Gradle finish syncing if it starts.
+3. Plug the Control Hub into your computer with the USB-C cable.
+4. Click the green play button with TeamCode selected, and wait for it to install.
 5. Pick your opmode on the Driver Station.
 
-If it doesn't work, see section 2.5 or the troubleshooting table above.
+If it doesn't work, see 2.5 or the troubleshooting table above.
