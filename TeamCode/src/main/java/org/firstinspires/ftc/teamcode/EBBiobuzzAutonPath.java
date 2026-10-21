@@ -20,6 +20,27 @@ public class EBBiobuzzAutonPath extends EBDecodeAutonPedroSummerTesting {
     }
 
     @Override
+    public double getMaxPower() {
+        return 0.5;
+    }
+
+    @Override
+    public void updateTelemetry() {
+        // pathState is incremented when a path starts, so the path being followed is pathState - 1
+        int pathIdx = pathState - 1;
+        if (pathIdx >= 0 && pathIdx < pathChain.size()) {
+            Pose goalPose = getPath(pathIdx).getPose(1);
+            telemetry.addData("Goal Path", pathIdx + 1);
+            telemetry.addData("Goal X", goalPose.getX());
+            telemetry.addData("Goal Y", goalPose.getY());
+            telemetry.addData("Goal Heading", getPath(pathIdx).getHeadingGoal(1));
+        } else {
+            telemetry.addData("Goal Path", "none");
+        }
+        super.updateTelemetry();
+    }
+
+    @Override
     public void pathStateAction(int state) {
         // state 0: start position
         // state 1..6: end of Path 1..6

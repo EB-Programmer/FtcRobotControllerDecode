@@ -43,6 +43,11 @@ public class EBDecodeAutonPedroSummerTesting extends EBDecodeAutonSummer {
         telemetry.update();
     }
 
+    public double getMaxPower() {
+        // Override this method to change the max drive power used while following paths
+        return 1.0;
+    }
+
     public PathChain getPathChain() {
         return null;
     }
@@ -102,7 +107,7 @@ public class EBDecodeAutonPedroSummerTesting extends EBDecodeAutonSummer {
 
             // Start next PathChain segment if necessary
             if (pathState < pathChain.size()) {
-                follower.followPath(new PathChain(getPath(pathState)), 1.0, true);
+                follower.followPath(new PathChain(getPath(pathState)), getMaxPower(), true);
             }
 
             pathState += 1;
