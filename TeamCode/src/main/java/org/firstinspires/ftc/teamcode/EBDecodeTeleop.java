@@ -142,7 +142,7 @@ public class EBDecodeTeleop extends LinearOpMode {
         rightFrontDrive = hardwareMap.get(DcMotor.class, "rightFrontDrive");
         leftRearDrive = hardwareMap.get(DcMotor.class, "leftRearDrive");
         rightRearDrive = hardwareMap.get(DcMotor.class, "rightRearDrive");
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
         rightRearDrive.setDirection(DcMotor.Direction.FORWARD);

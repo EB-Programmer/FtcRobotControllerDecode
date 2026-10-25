@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(12);  // TODO: need to re-measure
+            .mass(5);  // TODO: need to re-measure
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1.0)
@@ -22,17 +22,17 @@ public class Constants {
             .rightRearMotorName("rightRearDrive")
             .leftRearMotorName("leftRearDrive")
             .leftFrontMotorName("leftFrontDrive")
-            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(185)
-            .strafePodX(-194)
+            .forwardPodY(73)
+            .strafePodX(-117)
             .distanceUnit(DistanceUnit.MM)
             .hardwareMapName("pinpoint")
-            .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD)
+            .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
